@@ -1,0 +1,26 @@
+
+#include "main.h"
+
+MYMENU MENU
+{
+    POPUP "&Select Port"
+    {
+        MENUITEM "COM&1", IDM_COM1
+        MENUITEM "COM&2", IDM_COM2
+        MENUITEM "COM&3", IDM_COM3
+        MENUITEM "COM&4", IDM_COM4
+        MENUITEM "COM&5", IDM_COM5
+        MENUITEM "COM&6", IDM_COM6
+        MENUITEM "COM&7", IDM_COM7
+        MENUITEM "COM&8", IDM_COM8
+        MENUITEM "COM&9", IDM_COM9
+    }
+    MENUITEM "&Configure Port", IDM_CONFIGURE_PORT
+    MENUITEM "&Clear Screen", IDM_CLEAR_SCREEN
+    POPUP "&Change Mode"
+    {
+        MENUITEM "Command", IDM_COMMAND
+        MENUITEM "Connect", IDM_CONNECT
+    }
+    MENUITEM "&Help", IDM_HELP
+}
