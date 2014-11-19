@@ -1,8 +1,5 @@
 #include <windows.h>
 
-struct TransmitArgs;
-struct ReceiveArgs;
-
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs {
     BOOL bRequestStop;  // true to request the thread to stop
@@ -26,3 +23,7 @@ struct ReceiveArgs {
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
 };
+
+typedef struct TransmitArgs TransmitArgs;
+typedef struct ReceiveArgs ReceiveArgs;
+
