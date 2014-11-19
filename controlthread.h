@@ -26,4 +26,3 @@ struct ReceiveArgs {
 
 typedef struct TransmitArgs TransmitArgs;
 typedef struct ReceiveArgs ReceiveArgs;
-
