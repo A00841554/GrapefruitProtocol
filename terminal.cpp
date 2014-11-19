@@ -66,7 +66,8 @@
  *                   no other colors are specified
  */
 Terminal::Terminal(HWND* hwnd, HFONT* prtHFont,
-        FontColors* ptrDefaultFontColors) {
+        FontColors* ptrDefaultFontColors)
+{
 
     // initialize variables
     mDisplayedText = std::string();
@@ -114,16 +115,19 @@ Terminal::Terminal(HWND* hwnd, HFONT* prtHFont,
  * @param        str   std::string to print
  * @param        ptrFontColors   colors used to display the font with
  */
-void Terminal::fnAppendString(std::string str, FontColors* ptrFontColors) {
+void Terminal::fnAppendString(std::string str, FontColors* ptrFontColors)
+{
 
     // resolve arguments
-    if (!ptrFontColors) {
+    if (!ptrFontColors)
+    {
         ptrFontColors = mPtrDefaultFontColors;
     }
 
     // print stuff
     mDisplayedText.append(str);
-    for (int i = 0; i < str.length(); i++) {
+    for (int i = 0; i < str.length(); i++)
+    {
         mFontColors.push_back(ptrFontColors);
     }
 }
@@ -160,10 +164,12 @@ void Terminal::fnAppendString(std::string str, FontColors* ptrFontColors) {
  * @param        ptrFontColors   pointer to a FontColors struct that describes
  *                   the colors used to display the passed string (str) with
  */
-void Terminal::fnPrint(std::string str, FontColors* ptrFontColors) {
+void Terminal::fnPrint(std::string str, FontColors* ptrFontColors)
+{
 
     // clear the screen if flag mClearScreenNextPrint
-    if (mClearScreenNextPrint) {
+    if (mClearScreenNextPrint)
+    {
         mClearScreenNextPrint = false;
         fnClearScreen();
     }
@@ -195,9 +201,11 @@ void Terminal::fnPrint(std::string str, FontColors* ptrFontColors) {
  *
  * @signature    void Terminal::fnBackspace(void)
  */
-void Terminal::fnBackspace(void) {
+void Terminal::fnBackspace(void)
+{
     int newLength = mDisplayedText.length() - 1;
-    if (newLength >= 0) {
+    if (newLength >= 0)
+    {
         mDisplayedText.resize(newLength);
         mFontColors.resize(newLength);
         fnRedrawScreen();
@@ -225,7 +233,8 @@ void Terminal::fnBackspace(void) {
  *
  * @signature    void Terminal::fnClearScreen(void)
  */
-void Terminal::fnClearScreen(void) {
+void Terminal::fnClearScreen(void)
+{
     mDisplayedText.clear();
     mFontColors.clear();
     fnRedrawScreen(&mDisplayArea);
@@ -262,17 +271,22 @@ void Terminal::fnClearScreen(void) {
  * @param        hdc   handle to the device context, needed for painting on the
  *                   window
  */
-void Terminal::fnRedrawScreen(RECT* rect, HDC hdc) {
+void Terminal::fnRedrawScreen(RECT* rect, HDC hdc)
+{
 
     bool releaseHDC = false;
 
     // resolve arguments
-    if (rect == NULL) {
+    if (rect == NULL)
+    {
         rect = &mDisplayArea;
-    } else {
+    }
+    else
+    {
         mDisplayArea = *rect;
     }
-    if (hdc == NULL) {
+    if (hdc == NULL)
+    {
         hdc = GetDC(mHwnd);
         releaseHDC = true;
     }
@@ -294,7 +308,8 @@ void Terminal::fnRedrawScreen(RECT* rect, HDC hdc) {
 
     // draw a black rectangle in the client area to cover everything
     // behind & print our received characters in the client area
-    try {
+    try
+    {
         SelectObject(hdc, GetStockObject(WHITE_PEN));
         SelectObject(hdc, GetStockObject(BLACK_BRUSH));
         Rectangle(hdc, terminalRect.left, terminalRect.top,
@@ -303,7 +318,8 @@ void Terminal::fnRedrawScreen(RECT* rect, HDC hdc) {
     } catch( std::out_of_range ) {}
 
     // release device context...
-    if (releaseHDC) {
+    if (releaseHDC)
+    {
         ReleaseDC (mHwnd, hdc);
     }
 }
@@ -328,7 +344,8 @@ void Terminal::fnRedrawScreen(RECT* rect, HDC hdc) {
  *
  * @signature    void Terminal::fnSetClearScreenBeforeNextPrint(void)
  */
-void Terminal::fnSetClearScreenBeforeNextPrint(void) {
+void Terminal::fnSetClearScreenBeforeNextPrint(void)
+{
     mClearScreenNextPrint = true;
 }
 
@@ -367,7 +384,8 @@ void Terminal::fnSetClearScreenBeforeNextPrint(void) {
  * @param        startIndex   position in the string mDisplayedText to start
  *                   printing from
  */
-void Terminal::fnPrintText(HDC hdc, RECT* displayArea, int startIndex) {
+void Terminal::fnPrintText(HDC hdc, RECT* displayArea, int startIndex)
+{
 
     TEXTMETRIC textMetric;  // printing font's dimensional information
     std::string currRowText = "";   // text to print in current row
@@ -386,42 +404,50 @@ void Terminal::fnPrintText(HDC hdc, RECT* displayArea, int startIndex) {
     unsigned long textWidth = displayWidth / fontWidth - 1;
 
     // reassign currRowText and extraText
-    {
+
+   {
         // determine if we need print text on the next line
         if (mDisplayedText.substr(startIndex).length() > textWidth
-                || mDisplayedText.find("\n", startIndex) != std::string::npos) {
+                || mDisplayedText.find("\n", startIndex) != std::string::npos)
+        {
 
             // text is truncated at the first newline character if it exists;
             // truncated at the last space otherwise.
             std::string truncatedText = mDisplayedText.substr(startIndex);
             divisionIndex = truncatedText.find("\n");
             if (divisionIndex == std::string::npos
-                    || divisionIndex > textWidth) {
+                    || divisionIndex > textWidth)
+            {
                 divisionIndex = truncatedText.find_last_of(" ", textWidth);
             }
 
             // skip the newline, or space character
-            if (divisionIndex != std::string::npos) {
+            if (divisionIndex != std::string::npos)
+            {
                 divisionIndex++;
             }
 
             // if text was not truncated yet, truncate at
             // maximum text width.
             if (divisionIndex == std::string::npos
-                    || divisionIndex > textWidth) {
+                    || divisionIndex > textWidth)
+            {
                 divisionIndex = textWidth;
             }
 
             // assign currRowText & extraText
             currRowText = truncatedText.substr(0, divisionIndex);
             extraText = truncatedText.substr(divisionIndex);
-        } else {
+        }
+        else
+        {
             currRowText = mDisplayedText.substr(startIndex);
         }
     }
 
     // print current row
-    for (int i = 0; i < currRowText.length(); i++) {
+    for (int i = 0; i < currRowText.length(); i++)
+    {
 
         // set font color
         FontColors* ptrFontColors = mFontColors.at(i+startIndex);
@@ -434,10 +460,12 @@ void Terminal::fnPrintText(HDC hdc, RECT* displayArea, int startIndex) {
     }
 
     // print the rest of the text in the next rows
-    if (extraText != "") {
+    if (extraText != "")
+    {
         RECT tempDisplayArea = *displayArea;
         tempDisplayArea.top = tempDisplayArea.top + fontHeight;
-        if (tempDisplayArea.bottom > tempDisplayArea.top + fontHeight) {
+        if (tempDisplayArea.bottom > tempDisplayArea.top + fontHeight)
+        {
             fnPrintText(hdc, &tempDisplayArea, startIndex + divisionIndex);
         }
     }

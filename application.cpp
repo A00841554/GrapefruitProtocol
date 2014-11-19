@@ -69,7 +69,8 @@
  * @param        terminal   pointer to a Terminal object used to display
  *     information to the user
  */
-Application::Application(HWND hwnd, CommPort* commPort, Terminal* terminal) {
+Application::Application(HWND hwnd, CommPort* commPort, Terminal* terminal)
+{
 
     // initialize private members from function parameters
     mPtrCommPort = commPort;
@@ -110,7 +111,8 @@ Application::Application(HWND hwnd, CommPort* commPort, Terminal* terminal) {
  * @param        newPortName   name of the port that we want the application to
  *     use
  */
-void Application::fnSelectPort(std::string newPortName) {
+void Application::fnSelectPort(std::string newPortName)
+{
 
     // create a string stream that we will use to build a string, and print to
     // the terminal
@@ -118,18 +120,22 @@ void Application::fnSelectPort(std::string newPortName) {
 
     // validate application mode before continuing
     ApplicationConsts::Mode validMode = ApplicationConsts::Mode::COMMAND;
-    if (mMode != validMode) {
+    if (mMode != validMode)
+    {
         mStringStream << "Must be in ";
         mStringStream << ApplicationConsts::ModeNames[validMode];
         mStringStream << " mode to change ports";
         mStringStream << std::endl;
 
-    } else {
+    }
+    else
+    {
 
         // close the current port, change ports, and open the specified port
         (*mPtrCommPort).fnClose();
         (*mPtrCommPort).fnSetPortName(newPortName);
-        switch ((*mPtrCommPort).fnOpen()) {
+        switch ((*mPtrCommPort).fnOpen())
+        {
 
             case FAIL:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
@@ -177,11 +183,13 @@ void Application::fnSelectPort(std::string newPortName) {
  *
  * @param        newMode   the new mode of the Application instance
  */
-void Application::fnSetMode(ApplicationConsts::Mode newMode) {
+void Application::fnSetMode(ApplicationConsts::Mode newMode)
+{
     std::stringstream mStringStream;
 
     // do whatever you need to do, before changing modes
-    switch (mMode) {
+    switch (mMode)
+    {
         case ApplicationConsts::Mode::COMMAND:
             // nothing to do
             break;
@@ -191,7 +199,8 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode) {
     }
 
     // do whatever you need to do, after changing modes
-    switch (newMode) {
+    switch (newMode)
+    {
         case ApplicationConsts::Mode::COMMAND:
             // nothing to do
             break;
@@ -201,13 +210,16 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode) {
     }
 
     // change to the new mode
-    if (mMode != newMode) {
+    if (mMode != newMode)
+    {
         mMode = newMode;
         mStringStream << "Now in ";
         mStringStream << ApplicationConsts::ModeNames[mMode];
         mStringStream << " mode" << std::endl;
 
-    } else {
+    }
+    else
+    {
         mStringStream << "Already in " << ApplicationConsts::ModeNames[mMode];
         mStringStream << " mode" << std::endl;
     }
@@ -236,7 +248,8 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode) {
  *
  * @return       current mode of the Application instance
  */
-ApplicationConsts::Mode Application::fnGetMode(void) {
+ApplicationConsts::Mode Application::fnGetMode(void)
+{
     return mMode;
 }
 
@@ -261,7 +274,8 @@ ApplicationConsts::Mode Application::fnGetMode(void) {
  *
  * @signature    void Application::fnConfigurePort(void)
  */
-void Application::fnConfigurePort(void) {
+void Application::fnConfigurePort(void)
+{
 
     // create a string stream that we will use to build a string, and print to
     // the terminal
@@ -269,16 +283,20 @@ void Application::fnConfigurePort(void) {
 
     // validate application mode before continuing
     ApplicationConsts::Mode validMode = ApplicationConsts::Mode::COMMAND;
-    if (mMode != validMode) {
+    if (mMode != validMode)
+    {
         mStringStream << "Must be in ";
         mStringStream << ApplicationConsts::ModeNames[validMode];
         mStringStream << " mode to configure the port";
         mStringStream << std::endl;
 
-    } else {
+    }
+    else
+    {
 
         // go on to configure the port
-        switch ((*mPtrCommPort).fnConfigurePort(mHwnd)) {
+        switch ((*mPtrCommPort).fnConfigurePort(mHwnd))
+        {
 
             case SUCCESS:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
@@ -327,7 +345,8 @@ void Application::fnConfigurePort(void) {
  *
  * @param        c   character to send out the CommPort
  */
-void Application::fnSend(char c) {
+void Application::fnSend(char c)
+{
 
     // create a string stream that we will use to build a string, and print to
     // the terminal
@@ -335,16 +354,20 @@ void Application::fnSend(char c) {
 
     // validate application mode before continuing
     ApplicationConsts::Mode validMode = ApplicationConsts::Mode::CONNECT;
-    if (mMode != validMode) {
+    if (mMode != validMode)
+    {
         mStringStream << "Must be in ";
         mStringStream << ApplicationConsts::ModeNames[validMode];
         mStringStream << " mode to send data";
         mStringStream << std::endl;
 
-    } else {
+    }
+    else
+    {
 
         // send the character out through the port
-        switch ((*mPtrCommPort).fnSend(c)) {
+        switch ((*mPtrCommPort).fnSend(c))
+        {
 
             case SUCCESS:
                 break;
@@ -384,7 +407,8 @@ void Application::fnSend(char c) {
  *
  * @signature    void Application::fnHelp(void)
  */
-void Application::fnHelp(void) {
+void Application::fnHelp(void)
+{
 
     // create & print things to a string stream
     std::stringstream mStringStream;
@@ -445,21 +469,25 @@ void Application::fnHelp(void) {
  *
  * @param        c   character received from the CommPort
  */
-void Application::fnOnReceive(char c) {
+void Application::fnOnReceive(char c)
+{
 
     // create a string stream that we will use to build a string, and print to
     // the terminal
     std::stringstream mStringStream;
 
     // validate application mode before continuing
-    if (mMode == ApplicationConsts::Mode::CONNECT) {
+    if (mMode == ApplicationConsts::Mode::CONNECT)
+    {
 
         // do something to the Terminal depending on the received character
         std::stringstream mStringStream;
-        switch (c) {
+        switch (c)
+        {
 
             // backspace key; remove character
-            case 8: {
+            case 8:
+            {
                 (*mPtrTerminal).fnBackspace();
                 break;
             }
@@ -502,13 +530,15 @@ void Application::fnOnReceive(char c) {
  *
  * @signature    void Application::fnOpenPort(void)
  */
-/*void Application::fnOpenPort(void) {
+/*void Application::fnOpenPort(void)
+{
 
     // create & print information about the result of this operation to the
     // string stream
     std::stringstream mStringStream;
 
-    switch ((*mPtrCommPort).fnOpen()) {
+    switch ((*mPtrCommPort).fnOpen())
+    {
 
         case SUCCESS:
             mStringStream << (*mPtrCommPort).fnGetPortName();
@@ -550,12 +580,14 @@ void Application::fnOnReceive(char c) {
  *
  * @signature    void Application::fnClosePort(void)
  */
-/*void Application::fnClosePort(void) {
+/*void Application::fnClosePort(void)
+{
 
     // create & print information about the result of this operation to the
     // string stream
     std::stringstream mStringStream;
-    switch ((*mPtrCommPort).fnClose()) {
+    switch ((*mPtrCommPort).fnClose())
+    {
 
         case SUCCESS:
             mStringStream << (*mPtrCommPort).fnGetPortName();

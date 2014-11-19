@@ -83,7 +83,8 @@
  * @param        onReadCallback   pointer to function that will be invoked when
  *     this CommPort receives a character
  */
-CommPort::CommPort(std::string portName, void (*onReadCallback)(char)) {
+CommPort::CommPort(std::string portName, void (*onReadCallback)(char))
+{
 
     // initialize variables
     mStatus = Status::CLOSED;
@@ -136,7 +137,8 @@ CommPort::CommPort(std::string portName, void (*onReadCallback)(char)) {
  *
  * @signature    c CommPort::~CommPort(void)
  */
-CommPort::~CommPort(void) {
+CommPort::~CommPort(void)
+{
 
     // close the port before dying
     fnClose();
@@ -181,7 +183,8 @@ CommPort::~CommPort(void) {
  * @return       a return code indicating the result of the operation: SUCCESS,
  *     INVALID_OPERATION_FOR_STATE
  */
-int CommPort::fnSetPortName(std::string portName) {
+int CommPort::fnSetPortName(std::string portName)
+{
 
     // abort setting name of serial port if the port is already opened.
     if (mStatus == Status::OPENED)
@@ -218,7 +221,8 @@ int CommPort::fnSetPortName(std::string portName) {
  * @return       returns the status of the CommPort: CommPort::Status::OPENED,
  *     CommPort::Status::CLOSED
  */
-CommPort::Status CommPort::fnGetPortStatus(void) {
+CommPort::Status CommPort::fnGetPortStatus(void)
+{
     return mStatus;
 }
 
@@ -243,7 +247,8 @@ CommPort::Status CommPort::fnGetPortStatus(void) {
  *
  * @return       string containing name of port that instance is managing
  */
-std::string CommPort::fnGetPortName(void) {
+std::string CommPort::fnGetPortName(void)
+{
     return mPortName;
 }
 
@@ -279,22 +284,30 @@ std::string CommPort::fnGetPortName(void) {
  * @return       return code indicating the result of the operation:
  *     INVALID_OPERATION_FOR_STATE, SUCCESS, FAIL
  */
-int CommPort::fnConfigurePort(HWND hwnd) {
+int CommPort::fnConfigurePort(HWND hwnd)
+{
 
     // if the port is closed, bail out; cannot configure a closed port
-    if (mStatus == Status::CLOSED) {
+    if (mStatus == Status::CLOSED)
+    {
         return INVALID_OPERATION_FOR_STATE;
     }
 
     // configure the port...
     GetCommConfig(mHComm, &mCommConfig, &mCommConfig.dwSize);
-    if (CommConfigDialogA(mPortName.c_str(), hwnd, &mCommConfig)) {
-        if (SetCommConfig(mHComm, &mCommConfig, mCommConfig.dwSize)) {
+    if (CommConfigDialogA(mPortName.c_str(), hwnd, &mCommConfig))
+    {
+        if (SetCommConfig(mHComm, &mCommConfig, mCommConfig.dwSize))
+        {
             return SUCCESS;
-        } else {
+        }
+        else
+        {
             return FAIL;
         }
-    } else {
+    }
+    else
+    {
         return FAIL;
     }
 }
@@ -336,11 +349,13 @@ int CommPort::fnConfigurePort(HWND hwnd) {
  * @return       return code indicating the result of the operation:
  *     INVALID_OPERATION_FOR_STATE, SUCCESS, FAIL
  */
-int CommPort::fnOpen(void) {
+int CommPort::fnOpen(void)
+{
 
     // bail out if the port is already open; you can't open the port if it's
     // already open
-    if (mStatus == Status::OPENED) {
+    if (mStatus == Status::OPENED)
+    {
         return INVALID_OPERATION_FOR_STATE;
     }
 
@@ -351,7 +366,8 @@ int CommPort::fnOpen(void) {
     mReadOverlapped.hEvent = CreateEventA(NULL, TRUE, FALSE, NULL);
 
     // check if structure was set up properly; if it isn't bail out
-    if (mWriteOverlapped.hEvent == NULL || mReadOverlapped.hEvent == NULL) {
+    if (mWriteOverlapped.hEvent == NULL || mReadOverlapped.hEvent == NULL)
+    {
         return FAIL;
     }
 
@@ -372,14 +388,17 @@ int CommPort::fnOpen(void) {
             && GetCommState(mHComm, &mDcb)
             && BuildCommDCB("96,N,8,1", &mDcb)
             && SetCommState(mHComm, &mDcb)
-            && SetCommTimeouts(mHComm, &mCommTimeouts)) {
+            && SetCommTimeouts(mHComm, &mCommTimeouts))
+    {
 
         // set status to reflect status of serial port
         mStatus = Status::OPENED;
 
         // return...
         return SUCCESS;
-    } else {
+    }
+    else
+    {
         return FAIL;
     }
 }
@@ -415,19 +434,23 @@ int CommPort::fnOpen(void) {
  * @return       return code which indicates the result of the operation:
  *     INVALID_OPERATION_FOR_STATE, SUCCESS, FAIL
  */
-int CommPort::fnClose(void) {
+int CommPort::fnClose(void)
+{
 
     // verify state; cannot close the port if it's already closed
     if (mStatus == Status::CLOSED)
         return INVALID_OPERATION_FOR_STATE;
 
     // try to close the port
-    if (CloseHandle(mHComm)) {
+    if (CloseHandle(mHComm))
+    {
 
         mStatus = Status::CLOSED;    // update status
         mReadInProgress = FALSE;     // reset variables
         return SUCCESS;              // return...
-    } else {
+    }
+    else
+    {
         return FAIL;
     }
 }
@@ -451,16 +474,20 @@ int CommPort::fnClose(void) {
  *
  * @signature    void CommPort::fnStartReadThread(void)
  */
-void CommPort::fnStartReadThread(void) {
+void CommPort::fnStartReadThread(void)
+{
 
     // start read thread
-    {
+
+   {
         HANDLE hReadThread = NULL;
-        while (mReadThreadId == NULL && hReadThread == NULL) {
+        while (mReadThreadId == NULL && hReadThread == NULL)
+        {
             hReadThread = CreateThread(NULL, 0, fnReadThread,
                     (LPVOID) this, 0, &mReadThreadId);
         }
-        if (mReadThreadId != NULL) {
+        if (mReadThreadId != NULL)
+        {
             CloseHandle(hReadThread);
         }
     }
@@ -486,7 +513,8 @@ void CommPort::fnStartReadThread(void) {
  *
  * @signature    void CommPort::fnEndReadThread(void)
  */
-void CommPort::fnEndReadThread(void) {
+void CommPort::fnEndReadThread(void)
+{
     mReadThreadId = NULL;
 }
 
@@ -519,7 +547,8 @@ void CommPort::fnEndReadThread(void) {
  * @return       true if the passed threadId matches the CommPort's read thread
  *     id
  */
-bool CommPort::fnIsReadThread(DWORD threadId) {
+bool CommPort::fnIsReadThread(DWORD threadId)
+{
     return (mReadThreadId && (mReadThreadId == threadId));
 }
 
@@ -556,31 +585,44 @@ bool CommPort::fnIsReadThread(DWORD threadId) {
  * @return       return code which indicated the status of the operation:
  *     INVALID_OPERATION_FOR_STATE, SUCCESS, FAIL
  */
-int CommPort::fnSend(char c) {
+int CommPort::fnSend(char c)
+{
     DWORD bytesWritten = 0; // number of bytes sent out serial port
 
     // verify state; cannot send characters if serial port is closed
-    if (mStatus == Status::CLOSED) {
+    if (mStatus == Status::CLOSED)
+    {
         return INVALID_OPERATION_FOR_STATE;
     }
 
     // send the character
-    if (WriteFile(mHComm, &c, 1, &bytesWritten, &mWriteOverlapped)) {
+    if (WriteFile(mHComm, &c, 1, &bytesWritten, &mWriteOverlapped))
+    {
         return SUCCESS;
-    } else {
-        if (GetLastError() != ERROR_IO_PENDING) {
+    }
+    else
+    {
+        if (GetLastError() != ERROR_IO_PENDING)
+        {
             // WriteFile failed, but isn't delayed. Report error and abort.
             return FAIL;
-        } else {
+        }
+        else
+        {
             // Write is pending.
-            switch(WaitForSingleObject(mWriteOverlapped.hEvent, INFINITE)) {
+            switch(WaitForSingleObject(mWriteOverlapped.hEvent, INFINITE))
+            {
 
                 // OVERLAPPED structure's event has been signaled.
-                case WAIT_OBJECT_0: {
+                case WAIT_OBJECT_0:
+                {
                     if (!GetOverlappedResult(mHComm, &mWriteOverlapped,
-                            &bytesWritten, FALSE)) {
+                            &bytesWritten, FALSE))
+                    {
                         return FAIL;
-                    } else {
+                    }
+                    else
+                    {
                         // Write operation completed successfully.
                         return SUCCESS;
                     }
@@ -589,7 +631,8 @@ int CommPort::fnSend(char c) {
                 // An error has occurred in WaitForSingleObject.
                 // This usually indicates a problem with the
                 // OVERLAPPED structure's event handle.
-                default: {
+                default:
+                {
                     return FAIL;
                 }
             }
@@ -632,49 +675,67 @@ int CommPort::fnSend(char c) {
  * @return       return code indicating the result of the operation:
  *     INVALID_OPERATION_FOR_STATE , SUCCESS , FAIL
  */
-int CommPort::fnRead(void) {
+int CommPort::fnRead(void)
+{
     // verify state; cannot receive characters if port is closed
-    if (mStatus == Status::CLOSED) {
+    if (mStatus == Status::CLOSED)
+    {
         return INVALID_OPERATION_FOR_STATE;
     }
 
-    if (mReadInProgress == FALSE) {
+    if (mReadInProgress == FALSE)
+    {
         // read the character and invoke the onRead callback if character was
         // successfully read
         mBytesRead = 0;
-        if (ReadFile(mHComm, &mInBuffer, 1, &mBytesRead, &mReadOverlapped)) {
+        if (ReadFile(mHComm, &mInBuffer, 1, &mBytesRead, &mReadOverlapped))
+        {
 
             // read succeed instantly; handle it
-            if (mBytesRead != 0) {
+            if (mBytesRead != 0)
+            {
                 mOnRead(mInBuffer);
             }
             return SUCCESS;
 
-        } else {
-            if (GetLastError() != ERROR_IO_PENDING) {
+        }
+        else
+        {
+            if (GetLastError() != ERROR_IO_PENDING)
+            {
                 // read instantly failed for some reason
                 return FAIL;
 
-            } else {
+            }
+            else
+            {
                 // read is delayed
                 mReadInProgress = TRUE;
                 return SUCCESS;
 
             }
         }
-    } else {
-        switch(WaitForSingleObject(mReadOverlapped.hEvent, READ_TIMEOUT)) {
+    }
+    else
+    {
+        switch(WaitForSingleObject(mReadOverlapped.hEvent, READ_TIMEOUT))
+        {
 
             // Read completed.
-            case WAIT_OBJECT_0: {
+            case WAIT_OBJECT_0:
+            {
                 if (GetOverlappedResult(mHComm, &mReadOverlapped, &mBytesRead,
-                        FALSE)) {
+                        FALSE))
+                {
                     // Read completed successfully; handle successful read
-                    if (mBytesRead != 0) {
+                    if (mBytesRead != 0)
+                    {
                         mOnRead(mInBuffer);
                     }
                     return SUCCESS;
-                } else {
+                }
+                else
+                {
                     // Error in communications; report it.
                     return FAIL;
                 }
@@ -685,7 +746,8 @@ int CommPort::fnRead(void) {
             }
 
             // still delaying
-            case WAIT_TIMEOUT: {
+            case WAIT_TIMEOUT:
+            {
                 // Operation isn't complete yet. fWaitingOnRead flag isn't
                 // changed since I'll loop back around, and I don't want
                 // to issue another read until the first one finishes.
@@ -694,7 +756,8 @@ int CommPort::fnRead(void) {
                 return SUCCESS;
             }
 
-            default: {
+            default:
+            {
                 // Error in the WaitForSingleObject; abort.
                 // This indicates a problem with the OVERLAPPED structure's
                 // event handle.
@@ -737,7 +800,8 @@ int CommPort::fnRead(void) {
  *
  * @return       exit code
  */
-DWORD WINAPI fnReadThread(LPVOID threadParams) {
+DWORD WINAPI fnReadThread(LPVOID threadParams)
+{
 
     // get the current thread id to compare with the CommPort's read thread id
     DWORD threadId = GetCurrentThreadId();
@@ -747,9 +811,11 @@ DWORD WINAPI fnReadThread(LPVOID threadParams) {
 
     // read from the serial port forever until the comm port is no longer in the
     // correct state for reading (i.e.: the serial port is closed)
-    while ((*commPort).fnIsReadThread(threadId)) {
+    while ((*commPort).fnIsReadThread(threadId))
+    {
         Sleep(10); // give a chance for other functions to use the port
-        if ((*commPort).fnRead() == INVALID_OPERATION_FOR_STATE) {
+        if ((*commPort).fnRead() == INVALID_OPERATION_FOR_STATE)
+        {
             (*commPort).fnEndReadThread();
         }
     }
