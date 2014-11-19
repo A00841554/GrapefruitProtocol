@@ -4,7 +4,8 @@ struct TransmitArgs;
 struct ReceiveArgs;
 
 /** structure passed to transmit thread as thread arguments. */
-struct TransmitArgs {
+struct TransmitArgs
+{
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
     BOOL bActive;       // true if thread is in its "active" state
@@ -16,7 +17,8 @@ struct TransmitArgs {
 };
 
 /** structure passed to receive thread as thread arguments. */
-struct ReceiveArgs {
+struct ReceiveArgs
+{
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
     BOOL bActive;       // true if thread is in its "active" state
