@@ -1,7 +1,7 @@
 /**
- * readthread source file
+ * receivethread header file
  *
- * @sourceFile   readthread.cpp
+ * @sourceFile   receivethread.h
  *
  * @program      Grapefruit.exe
  *
@@ -20,4 +20,5 @@
  * @note         none
  */
 
-#include "readthread.h"
+#include<stdio.h>
+#include "controlthread.h"
