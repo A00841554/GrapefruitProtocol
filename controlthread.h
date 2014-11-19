@@ -1,7 +1,9 @@
 #include <windows.h>
+#include <vector>
 
 struct TransmitArgs;
 struct ReceiveArgs;
+typedef std::vector<char> TransmitBuffer;
 
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
@@ -14,6 +16,7 @@ struct TransmitArgs
     BOOL bSYN1;         // true if current data us SYN1
 
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
+    TransmitBuffer* pTransmitBuffer;
 };
 
 /** structure passed to receive thread as thread arguments. */
