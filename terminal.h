@@ -29,7 +29,8 @@
 #include <vector>
 
 /** describes the colors used to print a string with */
-typedef struct {
+typedef struct
+{
     COLORREF textColor; // color to use for characters
     COLORREF backColor; // color to use for the background of the characters
 } FontColors;
@@ -78,7 +79,8 @@ const static int TERMINAL_TEXT_PADDING = 3;
  *                   display information can be specified through the
  *                   fnRedrawScreen function.
  */
-class Terminal {
+class Terminal
+{
     public:
         Terminal(HWND*, HFONT*, FontColors*);
         void fnAppendString(std::string, FontColors* = NULL);

@@ -116,7 +116,8 @@ void fnOnReceiveCallback(char c);
  * @return       exit code
  */
 int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
-      LPSTR lspszCmdParam, int nCmdShow) {
+      LPSTR lspszCmdParam, int nCmdShow)
+{
 
     // configure & register program
     {
@@ -134,7 +135,8 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         Wcl.cbClsExtra = 0;
         Wcl.cbWndExtra = 0;
 
-        if (!RegisterClassEx (&Wcl)) {
+        if (!RegisterClassEx (&Wcl))
+        {
             return 0;
         }
     }
@@ -173,7 +175,8 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
     {
         // dequeue messages from the application's event queue & process them
         MSG Msg;
-        while (GetMessage (&Msg, NULL, 0, 0)) {
+        while (GetMessage (&Msg, NULL, 0, 0))
+        {
             TranslateMessage (&Msg);
             DispatchMessage (&Msg);
         }
@@ -217,19 +220,22 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
  * @return       exit code
  */
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
-        WPARAM wParam, LPARAM lParam) {
+        WPARAM wParam, LPARAM lParam)
+{
 
     HDC hdc;                // device context handle for painting to the window
     PAINTSTRUCT paintstruct;// used by windows system...
     RECT clientRectangle;   // rectangle containing dimensions of client area
 
-    switch (Message) {
+    switch (Message)
+    {
 
         ///////////////////////////////
         // Process menu bar messages //
         ///////////////////////////////
         case WM_COMMAND:
-            switch (LOWORD(wParam)) {
+            switch (LOWORD(wParam))
+            {
 
                 ///////////////////
                 // set port name //
@@ -242,7 +248,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 case IDM_COM6:
                 case IDM_COM7:
                 case IDM_COM8:
-                case IDM_COM9: {
+                case IDM_COM9:
+                {
                     // parse and build the port name
                     int commNumber = LOWORD(wParam) - IDM_COM1 + 1;
                     std::stringstream sstm;
@@ -294,12 +301,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
         ///////////////////////////////
         // Process keystroke message //
         ///////////////////////////////
-        case WM_CHAR: {
+        case WM_CHAR:
+        {
             char c = (char) wParam;
-            if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT) {
-                if (c != VK_ESCAPE) {
+            if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
+            {
+                if (c != VK_ESCAPE)
+                {
                     (*oApp).fnSend((char) wParam);
-                } else {
+                }
+                else
+                {
                     (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
                 }
             }
@@ -359,6 +371,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
  *
  * @param        c   character received through the serial port
  */
-void fnOnReceiveCallback(char c) {
+void fnOnReceiveCallback(char c)
+{
     (*oApp).fnOnReceive(c);
 }

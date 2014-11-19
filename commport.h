@@ -175,10 +175,12 @@ DWORD WINAPI fnReadThread(LPVOID);
  *     result of the operation and is intended to be used to update user
  *     interfaces as needed.
  */
-class CommPort {
+class CommPort
+{
     public:
         /** status codes for a serial port */
-        enum Status {
+        enum Status
+        {
             OPENED,
             CLOSED
         };

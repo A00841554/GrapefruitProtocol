@@ -29,16 +29,19 @@
 #include "terminal.h"
 #include "commport.h"
 
-namespace ApplicationConsts {
+namespace ApplicationConsts
+{
 
     /** modes that the Application class uses to indicate which mode it's in */
-    const enum Mode {
+    const enum Mode
+    {
         CONNECT,
         COMMAND
     };
 
     /** human-readable string versions of the application modes */
-    const std::string ModeNames[] = {
+    const std::string ModeNames[] =
+    {
         "CONNECT",
         "COMMAND"
     };
@@ -83,7 +86,8 @@ class Application;
  * provides interface methods to interact with the passed CommPort, and displays
  *     information to the user through the passed Terminal
  */
-class Application {
+class Application
+{
     public:
         Application(HWND, CommPort*, Terminal*);
         void fnSelectPort(std::string);
