@@ -24,5 +24,5 @@ struct ReceiveArgs {
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
 };
 
-typedef struct TransmitArgs TransmitArgs;
 typedef struct ReceiveArgs ReceiveArgs;
+typedef struct TransmitArgs TransmitArgs;
