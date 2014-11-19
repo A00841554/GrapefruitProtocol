@@ -35,27 +35,30 @@
  *
  * @programmer Marc Rafanan
  *
- * @signature  void fnReceiveThreadIdle(ReceiveArgs * stReceive)
+ * @signature  DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
  *
  * @param      stReceive - Structure that holds the flags for receivethread
  *
- * @return     returns void
+ * @return     DWORD
  *
  * @note       note1
  *
  */
-void fnReceiveThreadIdle(ReceiveArgs * stReceive) {
+DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg) {
     // TO DO readIdle
     // Clear receive buffer
+
+    ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
     while(true) {
         if(stReceive->bRequestStop == true){
             stReceive->bStopped = true;
-            return;
+            return 0;
         }
 
         //Wait for event from the receive buffer
-        // WaitCommEvent here
+        //WaitCommEvent(hFile, EV_RXCHAR, lpOverlapped);
+
         //if(waiting times-out) {
         //    continue
         //}
@@ -71,6 +74,8 @@ void fnReceiveThreadIdle(ReceiveArgs * stReceive) {
         //    }
         //}
     } // End of while
+
+    return 0;
 } // End of fnReceiveIdle
 
 /**
@@ -84,16 +89,19 @@ void fnReceiveThreadIdle(ReceiveArgs * stReceive) {
  *
  * @programmer Marc Rafanan
  *
- * @signature  void fnReceiveThreadActive(ReceiveArgs * stReceive)
+ * @signature  DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
  *
  * @param      stReceive - Structure that holds the flags for receivethread
  *
- * @return     returns void
+ * @return     DWORD
  *
  * @note       note1
  *
  */
-void fnReceiveThreadActive(ReceiveArgs * stReceive) {
+DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg) {
+
+    ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
+
     // TO DO readactive
     // stop the transmit thread
     (stReceive->pTransmit)->bStopped;
