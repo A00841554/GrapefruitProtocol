@@ -1,6 +1,7 @@
 #include "controlthread.h"
+#include "receivethread.h"
 
-fnControl()
+DWORD WINAPI fnControl(LPVOID args)
 {
     // create transmit and receive structures
     TransmitArgs transmitArgs;
@@ -33,8 +34,9 @@ fnControl()
             {
                 receiveArgs.bRequestStop = false;
                 receiveArgs.bStopped = false;
-                LPDWORD threadId;
-                CreateThread(, NULL, fnReceiveThreadIdle, &receiveArgs, 0, &threadId);
+                DWORD threadId;
+                CreateThread(NULL, 0, fnReceiveThreadIdle, &receiveArgs, 0,
+                        &threadId);
             }
             if (transmitArgs.bStopped)
             {
