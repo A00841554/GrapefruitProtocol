@@ -13,6 +13,8 @@ void fnTransmitIdle(TransmitArgs* pTransmit)
         pTransmit->bReset = false;
     }
 
+    
+    
     for(;;)
     {
         if(pTransmit->bRequestStop)
@@ -21,30 +23,26 @@ void fnTransmitIdle(TransmitArgs* pTransmit)
             return;
         }
 
-        /*Wait for event from the transmit buffer
-
-        if(waiting times-out) {
-
-            continue
-
+        if(!pTransmit->pTransmitBuffer->empty()) 
+        {
+            break;
         }
-
-        if(event from transmit buffer arrives) {
-
-            exit loop
-
-        }
-
-    if(transmit.receive.active == true) {
-
-        transmit.stopped = true
-
-    } else {
-
-        transmit.active = true
-
-        call TransmitActive(transmit)
-
-    return*/
+        
+        Sleep(SHORT_SLEEP);
     }
+
+    if(pTransmit->bActive)
+        pTransmit->bStopped = true;
+    else 
+    {
+        pTransmit->bActive = true;
+        fnTransmitActive(pTransmit);
+
+        return;
+    }
+}
+
+void fnTransmitActive(TransmitArgs* pTransmit)
+{
+    
 }
