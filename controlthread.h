@@ -38,6 +38,17 @@ struct ReceiveArgs
     HANDLE hCommPort;   // handle to the serial port
 };
 
+/** structure passed to the control thread as thread arguments. */
+struct ControlArgs
+{
+    BOOL bRequestStop;  // true to request the thread to stop
+    BOOL bStopped;      // true if thread is stopped; false otherwise
+};
+
+DWORD WINAPI fnControl(LPVOID args);
+
+const int CONTROL_THREAD_SLEEP_INTERVAL = 1000;
+
 /*
 #include <iostream>
 int main(void) {
