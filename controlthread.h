@@ -1,9 +1,12 @@
 #include <windows.h>
 #include <vector>
+<<<<<<< HEAD
 
 struct TransmitArgs;
 struct ReceiveArgs;
 typedef std::vector<char> TransmitBuffer;
+=======
+>>>>>>> joel
 
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
@@ -30,4 +33,13 @@ struct ReceiveArgs
     BOOL bSYN1;         // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
+<<<<<<< HEAD
 };
+=======
+};
+
+typedef struct TransmitArgs TransmitArgs;
+typedef struct ReceiveArgs ReceiveArgs;
+typedef std::vector<char> TransmitBuffer;
+
+>>>>>>> joel
