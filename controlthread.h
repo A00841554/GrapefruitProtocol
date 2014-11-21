@@ -31,15 +31,3 @@ struct ReceiveArgs
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
 };
-
-/*
-#include <iostream>
-int main(void) {
-    ReceiveArgs a;
-    a.bRequestStop = false;
-    a.bStopped = false;
-    a.bActive = false;
-    std::cout << a.bActive << std::endl;
-    return 0;
-}
-*/
