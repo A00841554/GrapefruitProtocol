@@ -1,3 +1,6 @@
+#ifndef _CONTROLTHREAD_H_
+#define _CONTROLTHREAD_H_
+
 #include <windows.h>
 #include <vector>
 
@@ -16,7 +19,8 @@ struct TransmitArgs
     BOOL bSYN1;         // true if current data us SYN1
 
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
-    TransmitBuffer* pTransmitBuffer;
+    
+    TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
 };
 
 /** structure passed to receive thread as thread arguments. */
@@ -30,6 +34,8 @@ struct ReceiveArgs
     BOOL bSYN1;         // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
+
+    HANDLE hCommPort;   // handle to the serial port
 };
 
 /*
@@ -43,3 +49,5 @@ int main(void) {
     return 0;
 }
 */
+
+#endif
