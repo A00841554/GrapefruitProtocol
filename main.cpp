@@ -1,4 +1,6 @@
+//testing version control
 //this is from the eric branch
+// this is from the test branch
 /**
  * windowed, terminal-like program that that lets one use a serial port to send,
  *     and receive data.
