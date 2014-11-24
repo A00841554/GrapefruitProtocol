@@ -21,6 +21,8 @@ struct TransmitArgs
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
     
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
+
+    HANDLE hCommPort;   // handle to the serial port
 };
 
 /** structure passed to receive thread as thread arguments. */
