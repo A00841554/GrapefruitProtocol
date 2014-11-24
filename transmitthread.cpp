@@ -1,6 +1,7 @@
 #include "transmitthread.h"
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
 
 void fnTransmitIdle(TransmitArgs* pTransmit)
 {
@@ -44,5 +45,33 @@ void fnTransmitIdle(TransmitArgs* pTransmit)
 
 void fnTransmitActive(TransmitArgs* pTransmit)
 {
-    
+    pTransmit->pReceive->bRequestStop = true;
+	
+	if(pTransmit->pReceive->bRVI)
+	{
+		//TODO
+		//fnSendData(RVI);
+		pTransmit->pReceive->bRVI = false;
+	}
+	else
+	{
+		//TODO
+		//fnSendData(ENQ);
+	}
+	
+	While(
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
