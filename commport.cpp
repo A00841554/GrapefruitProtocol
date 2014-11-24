@@ -83,17 +83,14 @@
  * @param        onReadCallback   pointer to function that will be invoked when
  *     this CommPort receives a character
  */
-CommPort::CommPort(std::string portName, void (*onReadCallback)(char))
+CommPort::CommPort(std::string portName)
 {
 
     // initialize variables
     mStatus = Status::CLOSED;
-    mReadInProgress = FALSE;
-    mReadThreadId = NULL;
 
     // initialize variables from function parameters
     mPortName = portName;
-    mOnRead = onReadCallback;
 
     // set up COMMTIMEOUTS structure
     memset(&mCommTimeouts, 0, sizeof(COMMTIMEOUTS));
@@ -359,18 +356,6 @@ int CommPort::fnOpen(void)
         return INVALID_OPERATION_FOR_STATE;
     }
 
-    // set up OVERLAPPED structures
-    memset(&mWriteOverlapped, 0, sizeof(OVERLAPPED));
-    mWriteOverlapped.hEvent = CreateEventA(NULL, TRUE, FALSE, NULL);
-    memset(&mReadOverlapped, 0, sizeof(OVERLAPPED));
-    mReadOverlapped.hEvent = CreateEventA(NULL, TRUE, FALSE, NULL);
-
-    // check if structure was set up properly; if it isn't bail out
-    if (mWriteOverlapped.hEvent == NULL || mReadOverlapped.hEvent == NULL)
-    {
-        return FAIL;
-    }
-
     // try to open the port
     mHComm = CreateFile(
             mPortName.c_str(),              // lpFileName
@@ -446,7 +431,6 @@ int CommPort::fnClose(void)
     {
 
         mStatus = Status::CLOSED;    // update status
-        mReadInProgress = FALSE;     // reset variables
         return SUCCESS;              // return...
     }
     else
@@ -455,101 +439,9 @@ int CommPort::fnClose(void)
     }
 }
 
-/**
- * starts the read thread if one isn't already started
- *
- * @class        CommPort
- *
- * @method       fnStartReadThread
- *
- * @date         2014-09-28
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes        none
- *
- * @signature    void CommPort::fnStartReadThread(void)
- */
-void CommPort::fnStartReadThread(void)
+HANDLE CommPort::fnGetCommHandle(void)
 {
-
-    // start read thread
-
-   {
-        HANDLE hReadThread = NULL;
-        while (mReadThreadId == NULL && hReadThread == NULL)
-        {
-            hReadThread = CreateThread(NULL, 0, fnReadThread,
-                    (LPVOID) this, 0, &mReadThreadId);
-        }
-        if (mReadThreadId != NULL)
-        {
-            CloseHandle(hReadThread);
-        }
-    }
-}
-
-/**
- * set's the CommPort instance's mReadThreadId to NULL, which will cause the
- *     read thread to stop
- *
- * @class        CommPort
- *
- * @method       fnEndReadThread
- *
- * @date         2014-09-28
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes        none
- *
- * @signature    void CommPort::fnEndReadThread(void)
- */
-void CommPort::fnEndReadThread(void)
-{
-    mReadThreadId = NULL;
-}
-
-/**
- * returns true if the passed threadId matches the CommPort instance's read
- *     thread id; false otherwise
- *
- * @class        CommPort
- *
- * @method       fnIsReadThread
- *
- * @date         2014-09-28
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes
- *
- * read threads will invoke this function and pass it their thread id to check
- *     if they are still needed or not. if they are returned FALSE, then it will
- *     end itself; it will continue otherwise
- *
- * @signature    bool CommPort::fnIsReadThread(DWORD threadId)
- *
- * @param        threadId   id of a thread
- *
- * @return       true if the passed threadId matches the CommPort's read thread
- *     id
- */
-bool CommPort::fnIsReadThread(DWORD threadId)
-{
-    return (mReadThreadId && (mReadThreadId == threadId));
+    return mHComm;
 }
 
 /**
@@ -585,7 +477,7 @@ bool CommPort::fnIsReadThread(DWORD threadId)
  * @return       return code which indicated the status of the operation:
  *     INVALID_OPERATION_FOR_STATE, SUCCESS, FAIL
  */
-int CommPort::fnSend(char c)
+/*int CommPort::fnSend(char c)
 {
     DWORD bytesWritten = 0; // number of bytes sent out serial port
 
@@ -638,7 +530,7 @@ int CommPort::fnSend(char c)
             }
         }
     }
-}
+}*/
 
 /**
  * reads characters from the communication port
@@ -675,7 +567,7 @@ int CommPort::fnSend(char c)
  * @return       return code indicating the result of the operation:
  *     INVALID_OPERATION_FOR_STATE , SUCCESS , FAIL
  */
-int CommPort::fnRead(void)
+/*int CommPort::fnRead(void)
 {
     // verify state; cannot receive characters if port is closed
     if (mStatus == Status::CLOSED)
@@ -765,61 +657,4 @@ int CommPort::fnRead(void)
             }
         }
     }
-}
-
-/**
- * function run on a separate thread to continuously read from the CommPort
- *     object that created it until the CommPort becomes closed.
- *
- * @class        CommPort
- *
- * @method       fnReadThread
- *
- * @date         2014-09-26
- *
- * @revisions
- *
- * 2014-09-28 - Eric Tsang - The thread checks if with the CommPort instance if
- *     it needs to be running continuously
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes
- *
- * function that is run on the read thread of the communications port. it
- *     continuously calls fnRead of the serial port, until a
- *     INVALID_OPERATION_FOR_STATE return code is returned, indicating that the
- *     serial port is no longer OPEN. once this happens, the thread ends.
- *
- * @signature    DWORD WINAPI fnReadThread(LPVOID threadParams)
- *
- * @param        threadParams   pointer to the CommPort object that started this
- *     thread
- *
- * @return       exit code
- */
-DWORD WINAPI fnReadThread(LPVOID threadParams)
-{
-
-    // get the current thread id to compare with the CommPort's read thread id
-    DWORD threadId = GetCurrentThreadId();
-
-    // parse data from thread parameters structure
-    CommPort* commPort = (CommPort*) threadParams;
-
-    // read from the serial port forever until the comm port is no longer in the
-    // correct state for reading (i.e.: the serial port is closed)
-    while ((*commPort).fnIsReadThread(threadId))
-    {
-        Sleep(10); // give a chance for other functions to use the port
-        if ((*commPort).fnRead() == INVALID_OPERATION_FOR_STATE)
-        {
-            (*commPort).fnEndReadThread();
-        }
-    }
-
-    // return...
-    return 0;
-}
+}*/
