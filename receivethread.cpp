@@ -22,6 +22,7 @@
 
 
 #include "receivethread.h"
+#include <assert.h>
 
 
 /**
@@ -68,7 +69,8 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         0,    // exclusive access 
         NULL, // default security attributes 
         OPEN_EXISTING,
-        NULL,
+        //NULL, // non-overlapped
+        FILE_FLAG_OVERLAPPED, // Testing for overlapped structure.
         NULL 
         );
 
@@ -82,7 +84,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     }
 
     DCB dcbPortSettings;
-    DWORD lastError;
+    //DWORD lastError;
     
     
     // Set default Settings (move to session later)
@@ -103,6 +105,12 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         OutputDebugString(strErrorBuffer);
         return dwErr;
     }
+
+    // return value for wait
+    BOOL bWaitReturn;
+    BOOL bWaitRead;
+    DWORD dwWait;
+
     // end of test
 
 
@@ -116,6 +124,19 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         return dwErr;
     }
 
+    // Create overlapped structure
+    OVERLAPPED ov;
+    ov.hEvent = CreateEvent(NULL,   // default security attributes
+                            TRUE,   // manual-reset event
+                            FALSE,  // not signaled
+                            NULL);   // no name
+
+    // Initialize the rest of the OVERLAPPED structure to zero.
+    ov.Internal = 0;
+    ov.InternalHigh = 0;
+    ov.Offset = 0;
+    ov.OffsetHigh = 0;
+    BOOL bWaitCommEvent = false;
     while(true)
     {
         if(stReceive->bRequestStop == true)
@@ -125,35 +146,80 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         }
 
         // Wait for event from the commport
-        if(WaitCommEvent(stReceive->hCommPort, &dwCommEvent, NULL))
+        if(bWaitCommEvent == false)
         {
-            if(ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, NULL))
+            bWaitCommEvent == true;
+            bWaitReturn = WaitCommEvent(stReceive->hCommPort, &dwCommEvent, &ov);
+            if(!bWaitReturn)
             {
-                
-                sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c\n", cRead);
-                OutputDebugString(strOutputDebugBuffer);
-                // Check if chRead is an ENQ
-                //if(cRead == 5)
-                if(cRead == 48) // press 0 to test
-                {
-                    if((stReceive->pTransmit)->bActive == true)
-                    {
-                        stReceive->bStopped = true;
-                    }
-                    else
-                    {
-                        stReceive->bActive = true;
-                        fnReceiveThreadActive(stReceive);
-                    }
-                    return 0;
-                }
+               assert( GetLastError() == ERROR_IO_PENDING);
             }
         }
+        ResetEvent(ov.hEvent);
+        OutputDebugString("Waiting for chars event\n");
+        dwWait = WaitForSingleObject(ov.hEvent, 10000); // wait for 10 seconds
+        if(dwWait == WAIT_OBJECT_0)
+        {
+            bWaitCommEvent = false;
+            OutputDebugString("Inside waitsingleobject\n");
+            ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov);
+            //if (dwRead > 0) {
+                sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c %d\n", cRead, dwRead);
+                OutputDebugString(strOutputDebugBuffer);
+                //ResetEvent(ov.hEvent);
+//            }
+
+            // Check if chRead is an ENQ
+            //if(cRead == 5)
+            if(cRead == 48) // press 0 to test
+            {
+                if((stReceive->pTransmit)->bActive == true)
+                {
+                    stReceive->bStopped = true;
+                }
+                else
+                {
+                    stReceive->bActive = true;
+                    fnReceiveThreadActive(stReceive);
+                }
+                return 0;
+            }
+        }
+        else if(dwWait == WAIT_TIMEOUT)
+        {
+            //ResetEvent(ov.hEvent);
+            OutputDebugString("Wait timed out\n");
+        }
+
+           //if(ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov))
+           //{
+           //    ResetEvent ( ov.hEvent );
+           //    sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c\n", cRead);
+           //    OutputDebugString(strOutputDebugBuffer);
+                // Check if chRead is an ENQ
+                //if(cRead == 5)
+           //    if(cRead == 48) // press 0 to test
+           //    {
+           //        if((stReceive->pTransmit)->bActive == true)
+           //        {
+           //            stReceive->bStopped = true;
+           //        }
+           //        else
+           //        {
+           //            stReceive->bActive = true;
+           //            fnReceiveThreadActive(stReceive);
+           //        }
+           //        return 0;
+           //    } // if cRead
+           //} // if ReadFile
+        //}// if dwWait
         else
         {
-            // Error in WaitCommEvent.
+           // Error in WaitForSingleObject.
+            //ResetEvent(ov.hEvent);
             break;
         }
+        
     }
 
     // for debugging
@@ -222,10 +288,13 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     //timeouts.WriteTotalTimeoutConstant = 100;
 
     if (!SetCommTimeouts(stReceive->hCommPort, &timeouts))
-    {        dwErr = GetLastError();
+    {
+        dwErr = GetLastError();
         sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error SetCommTimeouts: 0x%x\n", dwErr);
         OutputDebugString(strErrorBuffer);
-        return dwErr;    }
+        return dwErr;
+    }
+
     int ctr = 0;
     while(true)
     {
