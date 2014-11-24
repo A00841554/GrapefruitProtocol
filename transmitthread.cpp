@@ -1,13 +1,12 @@
 #include "transmitthread.h"
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
 
-void fnTransmitIdle(TransmitArgs* pTransmit)
+DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 {
     using namespace std;
     srand(time(NULL));
 
+	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
+	
     if(pTransmit->bReset)
     {
         //Sleep(rand())
@@ -43,8 +42,10 @@ void fnTransmitIdle(TransmitArgs* pTransmit)
     }
 }
 
-void fnTransmitActive(TransmitArgs* pTransmit)
+DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 {
+	TransmitArgs* pTransmit = (TransmitArgs*) lpArg
+	
     pTransmit->pReceive->bRequestStop = true;
 	
 	if(pTransmit->pReceive->bRVI)
