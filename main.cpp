@@ -160,7 +160,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
 
         // create objects
         oTerminal = new Terminal(&hwnd, &hFont, &defaultFontColors);
-        oCommPort = new CommPort(DEFAULT_PORT_NAME, &fnOnReceiveCallback);
+        oCommPort = new CommPort(DEFAULT_PORT_NAME);
         oApp = new Application(hwnd, oCommPort, oTerminal);
 
         // set the application's mode & comm port
@@ -304,7 +304,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
         case WM_CHAR:
         {
             char c = (char) wParam;
-            if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
+            /*switch (c)
+            {
+                case 'a':
+                (*oApp).fnStartControlThread();
+                break;
+
+                case 's':
+                (*oApp).fnStopControlThread();
+                break;
+            }*/
+            /*if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
             {
                 if (c != VK_ESCAPE)
                 {
@@ -314,7 +324,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 {
                     (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
                 }
-            }
+            }*/
             break;
         }
 

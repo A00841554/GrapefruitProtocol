@@ -1,8 +1,16 @@
+#ifndef _CONTROLTHREAD_H_
+#define _CONTROLTHREAD_H_
+
 #include <windows.h>
 #include <vector>
 
+struct TransmitArgs;
+struct ReceiveArgs;
+typedef std::vector<char> TransmitBuffer;
+
 /** structure passed to transmit thread as thread arguments. */
-struct TransmitArgs {
+struct TransmitArgs
+{
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
     BOOL bActive;       // true if thread is in its "active" state
@@ -11,11 +19,15 @@ struct TransmitArgs {
     BOOL bSYN1;         // true if current data us SYN1
 
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
-    TransmitBuffer* pTransmitBuffer;
+    
+    TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
+
+    HANDLE hCommPort;   // handle to the serial port
 };
 
 /** structure passed to receive thread as thread arguments. */
-struct ReceiveArgs {
+struct ReceiveArgs
+{
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
     BOOL bActive;       // true if thread is in its "active" state
@@ -24,9 +36,35 @@ struct ReceiveArgs {
     BOOL bSYN1;         // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
+
+    HANDLE hCommPort;   // handle to the serial port
 };
 
-typedef struct TransmitArgs TransmitArgs;
-typedef struct ReceiveArgs ReceiveArgs;
-typedef std::vector<char> TransmitBuffer;
+/** structure passed to the control thread as thread arguments. */
+struct ControlArgs
+{
+    BOOL bRequestStop;  // true to request the thread to stop
+    BOOL bStopped;      // true if thread is stopped; false otherwise
 
+    TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
+
+    HANDLE hCommPort;   // handle to the serial port
+};
+
+DWORD WINAPI fnControl(LPVOID args);
+
+const int CONTROL_THREAD_SLEEP_INTERVAL = 1000;
+
+/*
+#include <iostream>
+int main(void) {
+    ReceiveArgs a;
+    a.bRequestStop = false;
+    a.bStopped = false;
+    a.bActive = false;
+    std::cout << a.bActive << std::endl;
+    return 0;
+}
+*/
+
+#endif

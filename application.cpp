@@ -76,6 +76,9 @@ Application::Application(HWND hwnd, CommPort* commPort, Terminal* terminal)
     mPtrCommPort = commPort;
     mPtrTerminal = terminal;
     mHwnd = hwnd;
+
+    // initialize control argument structure
+    controlArgs.bStopped = true;
 }
 
 
@@ -186,6 +189,7 @@ void Application::fnSelectPort(std::string newPortName)
 void Application::fnSetMode(ApplicationConsts::Mode newMode)
 {
     std::stringstream mStringStream;
+    bool failedToChangeModes = false;
 
     // do whatever you need to do, before changing modes
     switch (mMode)
@@ -194,7 +198,7 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode)
             // nothing to do
             break;
         case ApplicationConsts::Mode::CONNECT:
-            (*mPtrCommPort).fnEndReadThread();
+            fnStopControlThread();
             break;
     }
 
@@ -205,18 +209,24 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode)
             // nothing to do
             break;
         case ApplicationConsts::Mode::CONNECT:
-            (*mPtrCommPort).fnStartReadThread();
+            failedToChangeModes = !fnStartControlThread();
             break;
     }
 
     // change to the new mode
     if (mMode != newMode)
     {
-        mMode = newMode;
+        if (!failedToChangeModes)
+        {
+            mMode = newMode;
+        }
+        else
+        {
+            mStringStream << "Failed to change modes; ";
+        }
         mStringStream << "Now in ";
         mStringStream << ApplicationConsts::ModeNames[mMode];
         mStringStream << " mode" << std::endl;
-
     }
     else
     {
@@ -345,7 +355,7 @@ void Application::fnConfigurePort(void)
  *
  * @param        c   character to send out the CommPort
  */
-void Application::fnSend(char c)
+/*void Application::fnSend(char c)
 {
 
     // create a string stream that we will use to build a string, and print to
@@ -386,7 +396,7 @@ void Application::fnSend(char c)
 
     // print whatever was in the string stream to the terminal
     (*mPtrTerminal).fnPrint(mStringStream.str());
-}
+}*/
 
 /**
  * prints a nice helpful help message to the Terminal
@@ -506,19 +516,14 @@ void Application::fnOnReceive(char c)
     }
 }
 
-///////////////////////
-// removed functions //
-///////////////////////
-
 /**
- * tries to open the CommPort object; prints information about the result of the
- *   operation to the Terminal
+ * starts the control thread
  *
  * @class        Application
  *
- * @method       fnOpenPort
+ * @method       fnStartControlThread
  *
- * @date         2014-09-26
+ * @date         2014-11-23
  *
  * @revisions    none
  *
@@ -526,85 +531,31 @@ void Application::fnOnReceive(char c)
  *
  * @programmer   EricTsang
  *
- * @notes        none
+ * @notes
  *
- * @signature    void Application::fnOpenPort(void)
+ * starts the control thread. returns true if the control thread was started;
+ *   false otherwise.
+ *
+ * @signature    bool Application::fnStartControlThread(void)
  */
-/*void Application::fnOpenPort(void)
+bool Application::fnStartControlThread(void)
 {
+    if (controlArgs.bStopped) {
+        controlArgs.bRequestStop = false;
+        controlArgs.bStopped = false;
+        // todo: change the nullptr to an actual transmit buffer
+        controlArgs.pTransmitBuffer = nullptr;
+        controlArgs.hCommPort = mPtrCommPort->fnGetCommHandle();
 
-    // create & print information about the result of this operation to the
-    // string stream
-    std::stringstream mStringStream;
+        DWORD threadId;
 
-    switch ((*mPtrCommPort).fnOpen())
-    {
-
-        case SUCCESS:
-            mStringStream << (*mPtrCommPort).fnGetPortName();
-            mStringStream << " opened" << std::endl;
-            break;
-
-        case FAIL:
-            mStringStream << (*mPtrCommPort).fnGetPortName();
-            mStringStream << " failed to open" << std::endl;
-            break;
-
-        case INVALID_OPERATION_FOR_STATE:
-            mStringStream << (*mPtrCommPort).fnGetPortName();
-            mStringStream << " is already opened" << std::endl;
-            break;
+        CreateThread(NULL, 0, fnControl, &controlArgs, 0, &threadId);
     }
 
-    // print whatever was in the string stream to the terminal
-    (*mPtrTerminal).fnPrint(mStringStream.str());
-}*/
+    return !controlArgs.bStopped;
+}
 
-/**
- * tries to close the port used by this Application object; prints a message to
- *   the Terminal about the result of this operation
- *
- * @class        Application
- *
- * @method       fnClosePort
- *
- * @date         2014-09-25
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes        none
- *
- * @signature    void Application::fnClosePort(void)
- */
-/*void Application::fnClosePort(void)
+void Application::fnStopControlThread(void)
 {
-
-    // create & print information about the result of this operation to the
-    // string stream
-    std::stringstream mStringStream;
-    switch ((*mPtrCommPort).fnClose())
-    {
-
-        case SUCCESS:
-            mStringStream << (*mPtrCommPort).fnGetPortName();
-            mStringStream << " closed" << std::endl;
-            break;
-
-        case FAIL:
-            mStringStream << (*mPtrCommPort).fnGetPortName();
-            mStringStream << " failed to close" << std::endl;
-            break;
-
-        case INVALID_OPERATION_FOR_STATE:
-            mStringStream << (*mPtrCommPort).fnGetPortName();
-            mStringStream << " is already closed" << std::endl;
-            break;
-    }
-
-    // print whatever was in the string stream to the terminal
-    (*mPtrTerminal).fnPrint(mStringStream.str());
-}*/
+    controlArgs.bRequestStop = true;
+}
