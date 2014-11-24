@@ -1,39 +1,24 @@
 /*
-validatePacket
-packetizeData
-checkDuplicate
-processData
-isEOT
-sendData
-CRC
-*/
+validatePacket----- NOT DONE YET !! -----> need CRC first
+packetizeData------ DONE !! ---> need some final changes (buffer)
+checkDuplicate----- DONE !!
+processData-------- DONE !!
+isEOT-------------- DONE !!
+sendData----------- NOT DONE YET !!
+CRC---------------- NOT DONE YET !!
+*//*
 const int headerSize = 2;
 const int dataSize = 1018;
-const int validationSize = 4;
+const int validationSize = 4; //32 bits
 const int packetSize = headerSize + dataSize + validationSize;
-
+*/
 #include <fstream>
 #include <iostream>
 #include <cstring>
 #include <stdlib.h>
+#include "helper.h"
 
 using namespace std;
-
-
-struct st_transmit {
-    bool request_stop;  // request to stop transmit thread
-    bool stopped;       // flag if transmit thread is stopped
-    bool active;        // flag if transmit state is active
-
-    bool reset;         // flag if transmit state should be reset
-    bool SYN1;          // flag if current data is SYN1
-};
-
-
-void CRC(char yes[]) {
-    yes[0] = 'y';
-}
-
 
 // Packetizes the data
 //char* packetizeData(st_transmit &transmit, bool forceEOT) { //forceEOT = is eot needed to be put here
@@ -93,13 +78,8 @@ char* packetizeData() {
     */
 
     char theCRC[validationSize];
-    
-    
-    
     /*
     Get CRC value by calling CRC(currData)
-    // return packet
-    Return (header + data + CRC)
     */
         
     //group up all the pieces to create a packet 
@@ -116,19 +96,67 @@ char* packetizeData() {
 
 } // End of packetizeData
 
+bool checkDuplicate (char packet[], st_receive receive) 
+{
+    //if both are SYN1 (dc2)
+    if (packet[1] == char(18) && receive.SYN1)
+        return true;
+    //if both are SYN2 (dc3)
+    if ( packet[1] == char(19) && !receive.SYN1 )
+        return true;
+
+    //if its not a repeated packet
+    receive.SYN1 = !receive.SYN1;
+    return false;
+}
+
+// Check if data is EOT
+bool isEOT( char packet[] )
+{
+    if (packet[0] == char(4))
+        return true;
+    else 
+        return false;
+}
 
 
+// processData will process the received valid data
+void processData(char packet[]) 
+{
+    for (int i = headerSize; i < (headerSize + dataSize); i++)
+    {
+        //check if current char being printed is an ETX
+        if (packet[i] == char(3))
+            return;
+        // if not ETX then print
+        cout << packet[i];
+    }
+}
 
+//THIS IS NOT FIXED YET !! 
+// -------------------------------------We need to use HANDLE instead of ofstream&
+void sendData(char packet[], std::ofstream& commPort) {
+    for (int i = 0; i < packetSize; i++)
+       commPort << packet[i];
+}
+ 
 int main () {
-
     char str1[packetSize];
     strcpy(str1, packetizeData());
     
     //isctrl(the character
-    cout << "--->"; 
-    
+    cout << "The full packet ---> '"; 
     
     for (int i= 0 ; i < packetSize;i++)
         printf("%c",str1[i]);
+        
+    cout << "'\nThe processed data:  '";
+    processData(str1);
+    cout << "'";
+    
+    //testing purposes
+    ofstream myfile ("example.txt");
+    sendData(str1, myfile);
+        
     return 0;
 }
