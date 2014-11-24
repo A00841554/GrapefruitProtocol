@@ -76,19 +76,19 @@ const HANDLE H_DEF_TEMPLATE_FILE = NULL;
 const int READ_TIMEOUT = 5000;
 
 /** default value for readIntervalTimeout of serial port timeouts */
-const int DEF_READ_INTERVAL_TIMEOUT = 1;
+const int DEF_READ_INTERVAL_TIMEOUT = 10;
 
 /** default value for readTotalTimeoutConstant of serial port timeouts */
-const int DEF_READ_TOTAL_TIMEOUT_CONSTANT = 1;
+const int DEF_READ_TOTAL_TIMEOUT_CONSTANT = 10;
 
 /** default value for readTotalTimeoutMultiplier of serial port timeouts */
-const int DEF_READ_TOTAL_TIMEOUT_MULTIPLIER = 1;
+const int DEF_READ_TOTAL_TIMEOUT_MULTIPLIER = 10;
 
 /** default value for writeTotalTimeoutConstant of serial port timeouts */
-const int DEF_WRITE_TOTAL_TIMEOUT_CONSTANT = 1;
+const int DEF_WRITE_TOTAL_TIMEOUT_CONSTANT = 10;
 
 /** default value for writeTotalTimeoutMultiplier of serial port timeouts */
-const int DEF_WRITE_TOTAL_TIMEOUT_MULTIPLIER = 1;
+const int DEF_WRITE_TOTAL_TIMEOUT_MULTIPLIER = 10;
 
 
 
@@ -134,15 +134,9 @@ DWORD WINAPI fnReadThread(LPVOID);
  *               int CommPort::fnSetPortName(std::string portName)
  *               std::string CommPort::fnGetPortName(void)
  *               Status fnGetPortStatus(void)
- *               void fnStartReadThread(void);
- *               void fnEndReadThread(void);
- *               bool fnIsReadThread(DWORD threadId);
  *               int CommPort::fnConfigurePort(HWND hwnd)
  *               int CommPort::fnOpen(void)
  *               int CommPort::fnClose(void)
- *               int CommPort::fnSend(char c)
- *               int CommPort::fnRead(void)
- *               DWORD WINAPI fnReadThread(LPVOID threadParams)
  *
  * @date         2014-09-26
  *
@@ -184,19 +178,15 @@ class CommPort
             OPENED,
             CLOSED
         };
-        CommPort(std::string, void(char));
+        CommPort(std::string);
         CommPort::~CommPort(void);
         std::string fnGetPortName(void);
         Status fnGetPortStatus(void);
-        void fnStartReadThread(void);
-        void fnEndReadThread(void);
-        bool CommPort::fnIsReadThread(DWORD);
         int fnSetPortName(std::string);
         int fnConfigurePort(HWND);
         int fnOpen(void);
         int fnClose(void);
-        int fnSend(char c);
-        int fnRead(void);
+        HANDLE fnGetCommHandle(void);
 
     private:
         /** status of serial port; it can be OPENED, or CLLOSED */
@@ -204,9 +194,6 @@ class CommPort
 
         /** handle to serial port */
         HANDLE mHComm;
-
-        /** ID of the read thread */
-        DWORD mReadThreadId;
 
         /** name of the serial port */
         std::string mPortName;
@@ -225,31 +212,4 @@ class CommPort
          *   from the comm port
          */
         COMMTIMEOUTS mCommTimeouts;
-
-        /**
-         * serial port's OVERLAPPED structure used by OS for asynchronous IO
-         *   purposes
-         */
-        OVERLAPPED mReadOverlapped;
-
-        /**
-         * serial port's OVERLAPPED structure used by OS for asynchronous IO
-         *   purposes
-         */
-        OVERLAPPED mWriteOverlapped;
-
-        /** true if a read is in progress; false otherwise */
-        bool mReadInProgress;
-
-        /** buffer where characters are read into from the serial port */
-        char mInBuffer;
-
-        /** number of bytes read from serial port in a read operation */
-        DWORD mBytesRead;
-
-        /**
-         * pointer to callback function that is invoked when something is
-         *   received from the serial port
-         */
-        void (*mOnRead)(char);
 };

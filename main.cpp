@@ -1,6 +1,4 @@
-//testing version control
-//this is from the eric branch
-// this is from the test branch
+
 /**
  * windowed, terminal-like program that that lets one use a serial port to send,
  *     and receive data.
@@ -162,7 +160,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
 
         // create objects
         oTerminal = new Terminal(&hwnd, &hFont, &defaultFontColors);
-        oCommPort = new CommPort(DEFAULT_PORT_NAME, &fnOnReceiveCallback);
+        oCommPort = new CommPort(DEFAULT_PORT_NAME);
         oApp = new Application(hwnd, oCommPort, oTerminal);
 
         // set the application's mode & comm port
@@ -306,7 +304,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
         case WM_CHAR:
         {
             char c = (char) wParam;
-            switch (c)
+            /*switch (c)
             {
                 case 'a':
                 (*oApp).fnStartControlThread();
@@ -315,7 +313,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 case 's':
                 (*oApp).fnStopControlThread();
                 break;
-            }
+            }*/
             /*if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
             {
                 if (c != VK_ESCAPE)

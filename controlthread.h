@@ -43,6 +43,10 @@ struct ControlArgs
 {
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
+
+    TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
+
+    HANDLE hCommPort;   // handle to the serial port
 };
 
 DWORD WINAPI fnControl(LPVOID args);
