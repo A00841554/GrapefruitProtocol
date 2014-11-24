@@ -28,6 +28,7 @@
 #include <sstream>
 #include "terminal.h"
 #include "commport.h"
+#include "controlthread.h"
 
 namespace ApplicationConsts
 {
@@ -97,8 +98,12 @@ class Application
         void fnSend(char);
         void fnOnReceive(char);
         void fnHelp(void);
+        void fnStartControlThread(void);
+        void fnStopControlThread(void);
 
     private:
+        /** structure passed to the control thread */
+        ControlArgs controlArgs;
 
         /** mode of the Application; it can be CONNECT, or COMMAND */
         ApplicationConsts::Mode mMode;

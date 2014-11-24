@@ -26,7 +26,34 @@ struct ReceiveArgs {
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
 };
 
+<<<<<<< HEAD
 typedef struct TransmitArgs TransmitArgs;
 typedef struct ReceiveArgs ReceiveArgs;
 typedef std::vector<char> TransmitBuffer;
 
+=======
+/** structure passed to the control thread as thread arguments. */
+struct ControlArgs
+{
+    BOOL bRequestStop;  // true to request the thread to stop
+    BOOL bStopped;      // true if thread is stopped; false otherwise
+};
+
+DWORD WINAPI fnControl(LPVOID args);
+
+const int CONTROL_THREAD_SLEEP_INTERVAL = 1000;
+
+/*
+#include <iostream>
+int main(void) {
+    ReceiveArgs a;
+    a.bRequestStop = false;
+    a.bStopped = false;
+    a.bActive = false;
+    std::cout << a.bActive << std::endl;
+    return 0;
+}
+*/
+
+#endif
+>>>>>>> 7976d5456fef84858873723fd896134543921e3e
