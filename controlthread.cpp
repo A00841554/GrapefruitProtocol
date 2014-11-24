@@ -12,12 +12,13 @@ DWORD WINAPI fnControl(LPVOID args)
     ReceiveArgs receiveArgs;
 
     // initialize transmit structure
-    transmitArgs.bRequestStop = false;
-    transmitArgs.bStopped     = true;
-    transmitArgs.bActive      = false;
-    transmitArgs.bReset       = false;
-    transmitArgs.bSYN1        = true;
-    transmitArgs.pReceive     = &receiveArgs;
+    transmitArgs.bRequestStop    = false;
+    transmitArgs.bStopped        = true;
+    transmitArgs.bActive         = false;
+    transmitArgs.bReset          = false;
+    transmitArgs.bSYN1           = true;
+    transmitArgs.pReceive        = &receiveArgs;
+    transmitArgs.pTransmitBuffer = controlArgs->pTransmitBuffer;
 
     // initialize receive thread structures
     receiveArgs.bRequestStop = false;
@@ -26,6 +27,7 @@ DWORD WINAPI fnControl(LPVOID args)
     receiveArgs.bRVI         = false;
     receiveArgs.bSYN1        = false;
     receiveArgs.pTransmit    = &transmitArgs;
+    receiveArgs.hCommPort    = controlArgs->hCommPort;
 
     // enter main control loop
     while (true)

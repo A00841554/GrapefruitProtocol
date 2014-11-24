@@ -98,10 +98,11 @@ class Application
         void fnSend(char);
         void fnOnReceive(char);
         void fnHelp(void);
-        void fnStartControlThread(void);
-        void fnStopControlThread(void);
 
     private:
+        bool fnStartControlThread(void);
+        void fnStopControlThread(void);
+
         /** structure passed to the control thread */
         ControlArgs controlArgs;
 

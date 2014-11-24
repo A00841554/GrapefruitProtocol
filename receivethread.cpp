@@ -63,7 +63,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     char strErrorBuffer[MAX_PATH+1] = {0};
 
     // for testing purposes, createfile here
-    stReceive->hCommPort = CreateFile( "COM1",
+    /*stReceive->hCommPort = CreateFile( "COM1",
         GENERIC_READ | GENERIC_WRITE,
         0,    // exclusive access 
         NULL, // default security attributes 
@@ -102,7 +102,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error setting commstate: 0x%x\n", dwErr);
         OutputDebugString(strErrorBuffer);
         return dwErr;
-    }
+    }*/
     // end of test
 
 
@@ -125,9 +125,10 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         }
 
         // Wait for event from the commport
-        if(WaitCommEvent(stReceive->hCommPort, &dwCommEvent, NULL))
-        {
-            if(ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, NULL))
+        //if(WaitCommEvent(stReceive->hCommPort, &dwCommEvent, NULL))
+        //{
+            ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, NULL);
+            if (dwRead > 0)
             {
                 
                 sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c\n", cRead);
@@ -148,17 +149,17 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                     return 0;
                 }
             }
-        }
-        else
-        {
-            // Error in WaitCommEvent.
-            break;
-        }
+        //}
+        //else
+        //{
+        //    // Error in WaitCommEvent.
+        //    break;
+        //}
     }
 
     // for debugging
     // comment out this part
-    CloseHandle(stReceive->hCommPort);
+    // CloseHandle(stReceive->hCommPort);
 
     return 0;
 } // End of fnReceiveIdle
@@ -222,10 +223,13 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     //timeouts.WriteTotalTimeoutConstant = 100;
 
     if (!SetCommTimeouts(stReceive->hCommPort, &timeouts))
-    {        dwErr = GetLastError();
+    {
+        dwErr = GetLastError();
         sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error SetCommTimeouts: 0x%x\n", dwErr);
         OutputDebugString(strErrorBuffer);
-        return dwErr;    }
+        return dwErr;
+    }
+
     int ctr = 0;
     while(true)
     {
