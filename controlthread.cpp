@@ -19,6 +19,7 @@ DWORD WINAPI fnControl(LPVOID args)
     transmitArgs.bSYN1           = true;
     transmitArgs.pReceive        = &receiveArgs;
     transmitArgs.pTransmitBuffer = controlArgs->pTransmitBuffer;
+    transmitArgs.hCommPort    = controlArgs->hCommPort;
 
     // initialize receive thread structures
     receiveArgs.bRequestStop = false;
