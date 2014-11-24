@@ -164,8 +164,8 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         oApp = new Application(hwnd, oCommPort, oTerminal);
 
         // set the application's mode & comm port
-        (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
-        (*oApp).fnSelectPort((*oCommPort).fnGetPortName());
+        //(*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
+        //(*oApp).fnSelectPort((*oCommPort).fnGetPortName());
 
         // show the window
         ShowWindow(hwnd, nCmdShow);
