@@ -50,26 +50,27 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     // TO DO readIdle
     // Clear receive buffer
 
-    DWORD dwCommEvent;
     DWORD dwRead;
+    DWORD dwErr;
+    DWORD dwWait;
+    BOOL bWaitReturn = false;
+    BOOL bWaitRead = false;
+
     char  cRead;
     char strOutputDebugBuffer[MAX_PATH+1] = {0};
+    char strErrorBuffer[MAX_PATH+1] = {0};
 
+    // Set receive structure
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
     OutputDebugString("fnReceiveThreadIdle: Started\n");
 
-    // For OutputDebugString 
-    DWORD dwErr = GetLastError();
-    char strErrorBuffer[MAX_PATH+1] = {0};
-
-    // for testing purposes, createfile here
+    // for testing purposes, createfile here. delete until end of test
     stReceive->hCommPort = CreateFile( "COM1",
         GENERIC_READ | GENERIC_WRITE,
         0,    // exclusive access 
         NULL, // default security attributes 
         OPEN_EXISTING,
-        //NULL, // non-overlapped
         FILE_FLAG_OVERLAPPED, // Testing for overlapped structure.
         NULL 
         );
@@ -78,7 +79,10 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     {
         // Handle the error.
         dwErr = GetLastError();
-        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: CreateFile failed with error: 0x%x\n", dwErr);
+        sprintf_s(strErrorBuffer,
+                  MAX_PATH,
+                  "fnReceiveThreadIdle: CreateFile failed with error: 0x%x\n",
+                  dwErr);
         OutputDebugString(strErrorBuffer);
         return dwErr;
     }
@@ -89,7 +93,10 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     if (!GetCommState(stReceive->hCommPort, &dcbPortSettings))
     {
         dwErr = GetLastError();
-        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error getting commstate: 0x%x\n", dwErr);
+        sprintf_s(strErrorBuffer,
+                  MAX_PATH,
+                  "fnReceiveThreadIdle: Error getting commstate: 0x%x\n",
+                  dwErr);
         OutputDebugString(strErrorBuffer);
         return dwErr;
     }
@@ -99,25 +106,24 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     if(!SetCommState(stReceive->hCommPort, &dcbPortSettings))
     {
         dwErr = GetLastError();
-        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error setting commstate: 0x%x\n", dwErr);
+        sprintf_s(strErrorBuffer,
+                  MAX_PATH,
+                  "fnReceiveThreadIdle: Error setting commstate: 0x%x\n",
+                  dwErr);
         OutputDebugString(strErrorBuffer);
         return dwErr;
     }
-
-    // return value for wait
-    BOOL bWaitReturn = false;
-    BOOL bWaitRead = false;
-    DWORD dwWait;
-
     // end of test
-
 
     // SetCommMask to wait for ACK
     if(!SetCommMask(stReceive->hCommPort, EV_RXCHAR))
     {
         // Error setting communications event mask.
         dwErr = GetLastError();
-        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error SetCommMask: 0x%x\n", dwErr);
+        sprintf_s(strErrorBuffer,
+                  MAX_PATH,
+                  "fnReceiveThreadIdle: Error SetCommMask: 0x%x\n",
+                  dwErr);
         OutputDebugString(strErrorBuffer);
         return dwErr;
     }
@@ -127,20 +133,19 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     ov.hEvent = CreateEvent(NULL,   // default security attributes
                             TRUE,   // manual-reset event
                             FALSE,  // not signaled
-                            NULL);   // no name
+                            NULL);  // no name
 
     // Initialize the rest of the OVERLAPPED structure to zero.
-    ov.Internal = 0;
+    ov.Internal     = 0;
     ov.InternalHigh = 0;
-    ov.Offset = 0;
-    ov.OffsetHigh = 0;
-    BOOL bWaitCommEvent = false;
+    ov.Offset       = 0;
+    ov.OffsetHigh   = 0;
 
     while(true)
     {
-        if(stReceive->bRequestStop == true)
+        if(stReceive->bRequestStop == TRUE)
         {
-            stReceive->bStopped = true;
+            stReceive->bStopped = TRUE;
             CloseHandle(stReceive->hCommPort); // Delete this line
             CloseHandle(ov.hEvent); // Close handle for event
             return 0;
@@ -149,13 +154,16 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         // Wait for event from the commport
         if (!bWaitRead)
         {
-            // Issue read operation.
-            if (!ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov)) // Wait for 10 Bytes for now
+            // Wait for ENQ
+            if (!ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov))
             {
                 dwErr = GetLastError();
                 if (dwErr != ERROR_IO_PENDING)     // read not delayed?
                 {
-                    sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error ReadFile: 0x%x\n", dwErr);
+                    sprintf_s(strErrorBuffer,
+                              MAX_PATH,
+                              "fnReceiveThreadIdle: Error ReadFile: 0x%x\n",
+                              dwErr);
                     OutputDebugString(strErrorBuffer);
                     CloseHandle(stReceive->hCommPort); // Delete this line
                     CloseHandle(ov.hEvent); // Close handle for event
@@ -173,13 +181,13 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                 //if(cRead == 5)
                 if(cRead == 48) // press 0 to test
                 {
-                    if((stReceive->pTransmit)->bActive == true)
+                    if((stReceive->pTransmit)->bActive == TRUE)
                     {
-                        stReceive->bStopped = true;
+                        stReceive->bStopped = TRUE;
                     }
                     else
                     {
-                        stReceive->bActive = true;
+                        stReceive->bActive = TRUE;
                         fnReceiveThreadActive(stReceive);
                     }
                     CloseHandle(stReceive->hCommPort); // Delete this line
@@ -196,10 +204,17 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
             {
                 // Read completed.
                 case WAIT_OBJECT_0:
-                    if (!GetOverlappedResult(stReceive->hCommPort, &ov, &dwRead, FALSE))
+                    if (!GetOverlappedResult(stReceive->hCommPort,
+                                             &ov, 
+                                             &dwRead, 
+                                             FALSE))
                     {
                         dwErr = GetLastError();
-                        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error GetOverlappedResult: 0x%x\n", dwErr);
+                        sprintf_s(strErrorBuffer,
+                                  MAX_PATH,
+                                  "fnReceiveThreadIdle:" 
+                                  "Error GetOverlappedResult: 0x%x\n",
+                                  dwErr);
                         OutputDebugString(strErrorBuffer);
                         CloseHandle(stReceive->hCommPort); // Delete this line
                         CloseHandle(ov.hEvent); // Close handle for event
@@ -208,7 +223,11 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                     else
                     {
                         // Read completed successfully.
-                        sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c %d\n", cRead, dwRead);
+                        sprintf_s(strOutputDebugBuffer,
+                                  MAX_PATH,
+                                  "fnReceiveThreadIdle: Detected Char: %c %d\n",
+                                  cRead,
+                                  dwRead);
                         OutputDebugString(strOutputDebugBuffer);
                         
                         // Read char on port
@@ -216,18 +235,18 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                         //if(cRead == 5)
                         if(cRead == 48) // press 0 to test
                         {
-                            if((stReceive->pTransmit)->bActive == true)
+                            if((stReceive->pTransmit)->bActive == TRUE)
                             {
-                                stReceive->bStopped = true;
+                                stReceive->bStopped = TRUE;
                             }
                             else
                             {
-                                stReceive->bActive = true;
+                                stReceive->bActive = TRUE;
                                 fnReceiveThreadActive(stReceive);
                             }
                             CloseHandle(stReceive->hCommPort); // Delete this line
                             CloseHandle(ov.hEvent); // Close handle for event
-                            stReceive->bStopped = true;
+                            stReceive->bStopped = TRUE;
                             return 0;
                         }
                     }
@@ -285,7 +304,6 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
 {
 
-    DWORD dwCommEvent;
     DWORD dwRead;
     char  cRead[1024 + 1] = {0};
     char  strOutputDebugBuffer[2048] = {0};
@@ -294,13 +312,13 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
     // stop the transmit thread
-    (stReceive->pTransmit)->bStopped = true;
+    (stReceive->pTransmit)->bStopped = TRUE;
     // sendData(ACK)
     OutputDebugString("fnReceiveThreadActive: Started\n");
 
     // return value for wait
-    BOOL bWaitReturn = false;
-    BOOL bWaitRead = false;
+    BOOL bWaitReturn = FALSE;
+    BOOL bWaitRead   = FALSE;
     DWORD dwWait;
     DWORD dwErr;
 
@@ -311,7 +329,10 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     {
         // Error setting communications event mask.
         dwErr = GetLastError();
-        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error SetCommMask: 0x%x\n", dwErr);
+        sprintf_s(strErrorBuffer,
+                  MAX_PATH,
+                  "fnReceiveThreadActive: Error SetCommMask: 0x%x\n",
+                  dwErr);
         OutputDebugString(strErrorBuffer);
         return dwErr;
     }
@@ -324,16 +345,15 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                             NULL);   // no name
 
     // Initialize the rest of the OVERLAPPED structure to zero.
-    ov.Internal = 0;
+    ov.Internal     = 0;
     ov.InternalHigh = 0;
-    ov.Offset = 0;
-    ov.OffsetHigh = 0;
-    BOOL bWaitCommEvent = false;
+    ov.Offset       = 0;
+    ov.OffsetHigh   = 0;
 
     while(true)
     {
         // Stop block
-        if(stReceive->bRequestStop == true)
+        if(stReceive->bRequestStop == TRUE)
         {
             //stReceive->bStopped = true; // let idle handle the stop
             CloseHandle(ov.hEvent); // Close handle for event
@@ -349,11 +369,14 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                 dwErr = GetLastError();
                 if (dwErr != ERROR_IO_PENDING)     // read not delayed?
                 {
-                    sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error ReadFile: 0x%x\n", dwErr);
+                    sprintf_s(strErrorBuffer,
+                              MAX_PATH,
+                              "fnReceiveThreadActive: Error ReadFile: 0x%x\n",
+                              dwErr);
                     OutputDebugString(strErrorBuffer);
                     CloseHandle(ov.hEvent); // Close handle for event
                     //stReceive->bStopped = true;
-                    stReceive->bActive = false;
+                    stReceive->bActive = FALSE;
                     return dwErr;
                 }
                 else
@@ -372,21 +395,32 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
             dwWait = WaitForSingleObject(ov.hEvent, 10000); // Change timeout and put it somewhere
             if (dwWait == WAIT_OBJECT_0)
             {
-                if (!GetOverlappedResult(stReceive->hCommPort, &ov, &dwRead, FALSE))
+                if (!GetOverlappedResult(stReceive->hCommPort,
+                                        &ov,
+                                        &dwRead,
+                                        FALSE))
                 {
                     dwErr = GetLastError();
-                    sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error GetOverlappedResult: 0x%x\n", dwErr);
+                    sprintf_s(strErrorBuffer,
+                              MAX_PATH,
+                              "fnReceiveThreadActive:"
+                              "Error GetOverlappedResult: 0x%x\n",
+                              dwErr);
                     OutputDebugString(strErrorBuffer);
                     CloseHandle(ov.hEvent); // Close handle for event
                     
                     //stReceive->bStopped = true;
-                    stReceive->bActive = false;
+                    stReceive->bActive = FALSE;
                     return dwErr;
                 }
                 else
                 {
                     // Read completed successfully.
-                    sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadActive: String: %s %d\n", cRead, dwRead);
+                    sprintf_s(strOutputDebugBuffer,
+                              MAX_PATH,
+                              "fnReceiveThreadActive: String: %s %d\n",
+                              cRead,
+                              dwRead);
                     OutputDebugString(strOutputDebugBuffer);
                     // Check data if valid; bail if invalid
                     // if(!validatePacket(receivedData)) {
@@ -424,11 +458,12 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                 // to issue another read until the first one finishes.
                 //
                 // This is a good time to do some background work.
-                OutputDebugString("fnReceiveThreadActive: WaitForSingleObject Timed out\n");
+                OutputDebugString("fnReceiveThreadActive:" 
+                                  "WaitForSingleObject Timed out\n");
                 CloseHandle(ov.hEvent); // Close handle for event
 
                 //stReceive->bStopped = true;
-                stReceive->bActive = false;
+                stReceive->bActive = FALSE;
 
                 return 0;
             }
@@ -447,7 +482,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     CloseHandle(ov.hEvent); // Close handle for event
 
     //stReceive->bStopped = true;
-    stReceive->bActive = false;
+    stReceive->bActive = FALSE;
 
     return 0;
 } // End of fnReceiveThreadActive
