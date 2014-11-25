@@ -84,8 +84,6 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     }
 
     DCB dcbPortSettings;
-    //DWORD lastError;
-    
     
     // Set default Settings (move to session later)
     if (!GetCommState(stReceive->hCommPort, &dcbPortSettings))
@@ -107,8 +105,8 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     }
 
     // return value for wait
-    BOOL bWaitReturn;
-    BOOL bWaitRead;
+    BOOL bWaitReturn = false;
+    BOOL bWaitRead = false;
     DWORD dwWait;
 
     // end of test
@@ -137,95 +135,130 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     ov.Offset = 0;
     ov.OffsetHigh = 0;
     BOOL bWaitCommEvent = false;
+
     while(true)
     {
         if(stReceive->bRequestStop == true)
         {
             stReceive->bStopped = true;
+            CloseHandle(stReceive->hCommPort); // Delete this line
+            CloseHandle(ov.hEvent); // Close handle for event
             return 0;
         }
 
         // Wait for event from the commport
-        if(bWaitCommEvent == false)
+        if (!bWaitRead)
         {
-            bWaitCommEvent == true;
-            bWaitReturn = WaitCommEvent(stReceive->hCommPort, &dwCommEvent, &ov);
-            if(!bWaitReturn)
+            // Issue read operation.
+            if (!ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov)) // Wait for 10 Bytes for now
             {
-               assert( GetLastError() == ERROR_IO_PENDING);
-            }
-        }
-        ResetEvent(ov.hEvent);
-        OutputDebugString("Waiting for chars event\n");
-        dwWait = WaitForSingleObject(ov.hEvent, 10000); // wait for 10 seconds
-        if(dwWait == WAIT_OBJECT_0)
-        {
-            bWaitCommEvent = false;
-            OutputDebugString("Inside waitsingleobject\n");
-            ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov);
-            //if (dwRead > 0) {
-                sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c %d\n", cRead, dwRead);
-                OutputDebugString(strOutputDebugBuffer);
-                //ResetEvent(ov.hEvent);
-//            }
-
-            // Check if chRead is an ENQ
-            //if(cRead == 5)
-            if(cRead == 48) // press 0 to test
-            {
-                if((stReceive->pTransmit)->bActive == true)
+                dwErr = GetLastError();
+                if (dwErr != ERROR_IO_PENDING)     // read not delayed?
                 {
-                    stReceive->bStopped = true;
+                    sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error ReadFile: 0x%x\n", dwErr);
+                    OutputDebugString(strErrorBuffer);
+                    CloseHandle(stReceive->hCommPort); // Delete this line
+                    CloseHandle(ov.hEvent); // Close handle for event
+                    return dwErr;
                 }
                 else
                 {
-                    stReceive->bActive = true;
-                    fnReceiveThreadActive(stReceive);
+                    bWaitRead = TRUE;
                 }
-                return 0;
             }
-        }
-        else if(dwWait == WAIT_TIMEOUT)
-        {
-            //ResetEvent(ov.hEvent);
-            OutputDebugString("Wait timed out\n");
-        }
-
-           //if(ReadFile(stReceive->hCommPort, &cRead, 1, &dwRead, &ov))
-           //{
-           //    ResetEvent ( ov.hEvent );
-           //    sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c\n", cRead);
-           //    OutputDebugString(strOutputDebugBuffer);
+            else 
+            {
+                // Read char on port
                 // Check if chRead is an ENQ
                 //if(cRead == 5)
-           //    if(cRead == 48) // press 0 to test
-           //    {
-           //        if((stReceive->pTransmit)->bActive == true)
-           //        {
-           //            stReceive->bStopped = true;
-           //        }
-           //        else
-           //        {
-           //            stReceive->bActive = true;
-           //            fnReceiveThreadActive(stReceive);
-           //        }
-           //        return 0;
-           //    } // if cRead
-           //} // if ReadFile
-        //}// if dwWait
-        else
+                if(cRead == 48) // press 0 to test
+                {
+                    if((stReceive->pTransmit)->bActive == true)
+                    {
+                        stReceive->bStopped = true;
+                    }
+                    else
+                    {
+                        stReceive->bActive = true;
+                        fnReceiveThreadActive(stReceive);
+                    }
+                    CloseHandle(stReceive->hCommPort); // Delete this line
+                    CloseHandle(ov.hEvent); // Close handle for event
+                    return 0;
+                }
+            }
+        } // if (!bWaitRead)
+
+        if (bWaitRead) 
         {
-           // Error in WaitForSingleObject.
-            //ResetEvent(ov.hEvent);
-            break;
+            dwWait = WaitForSingleObject(ov.hEvent, 5000); // Change timeout and put it somewhere
+            switch(dwWait)
+            {
+                // Read completed.
+                case WAIT_OBJECT_0:
+                    if (!GetOverlappedResult(stReceive->hCommPort, &ov, &dwRead, FALSE))
+                    {
+                        dwErr = GetLastError();
+                        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadIdle: Error GetOverlappedResult: 0x%x\n", dwErr);
+                        OutputDebugString(strErrorBuffer);
+                        CloseHandle(stReceive->hCommPort); // Delete this line
+                        CloseHandle(ov.hEvent); // Close handle for event
+                        return dwErr;
+                    }
+                    else
+                    {
+                        // Read completed successfully.
+                        sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadIdle: Detected Char: %c %d\n", cRead, dwRead);
+                        OutputDebugString(strOutputDebugBuffer);
+                        
+                        // Read char on port
+                        // Check if chRead is an ENQ
+                        //if(cRead == 5)
+                        if(cRead == 48) // press 0 to test
+                        {
+                            if((stReceive->pTransmit)->bActive == true)
+                            {
+                                stReceive->bStopped = true;
+                            }
+                            else
+                            {
+                                stReceive->bActive = true;
+                                fnReceiveThreadActive(stReceive);
+                            }
+                            CloseHandle(stReceive->hCommPort); // Delete this line
+                            CloseHandle(ov.hEvent); // Close handle for event
+                            stReceive->bStopped = true;
+                            return 0;
+                        }
+                    }
+
+                    //  Reset flag so that another opertion can be issued.
+                    bWaitRead = FALSE;
+                    break;
+
+                case WAIT_TIMEOUT:
+                    // Operation isn't complete yet. fWaitingOnRead flag isn't
+                    // changed since I'll loop back around, and I don't want
+                    // to issue another read until the first one finishes.
+                    //
+                    // This is a good time to do some background work.
+                    OutputDebugString("fnReceiveThreadIdle: WaitForSingleObject Timed out\n");
+                    break;
+
+                default:
+                    // Error in the WaitForSingleObject; abort.
+                    // This indicates a problem with the OVERLAPPED structure's
+                    // event handle.
+                    break;
+            }
         }
-        
     }
 
     // for debugging
     // comment out this part
     CloseHandle(stReceive->hCommPort);
-
+    CloseHandle(ov.hEvent); // Close handle for event
+    stReceive->bStopped = true;
     return 0;
 } // End of fnReceiveIdle
 
@@ -254,8 +287,9 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
 
     DWORD dwCommEvent;
     DWORD dwRead;
-    char  cRead[1024] = {0};
+    char  cRead[1024 + 1] = {0};
     char  strOutputDebugBuffer[2048] = {0};
+    char  strErrorBuffer[MAX_PATH+1] = {0};
 
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
@@ -264,11 +298,15 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     // sendData(ACK)
     OutputDebugString("fnReceiveThreadActive: Started\n");
 
-    // for testing purposes only
-    DWORD dwErr = GetLastError();
-    char strErrorBuffer[MAX_PATH+1] = {0};
+    // return value for wait
+    BOOL bWaitReturn = false;
+    BOOL bWaitRead = false;
+    DWORD dwWait;
+    DWORD dwErr;
 
-        // SetCommMask to wait for ACK
+    // end of test
+
+    // SetCommMask to wait for ACK
     if(!SetCommMask(stReceive->hCommPort, EV_RXCHAR))
     {
         // Error setting communications event mask.
@@ -278,76 +316,137 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
         return dwErr;
     }
 
-    // Set timeouts 
-    // Comments: Constants should be put somewhere
-    COMMTIMEOUTS timeouts;
-    timeouts.ReadIntervalTimeout = 3000;
-    timeouts.ReadTotalTimeoutMultiplier = 2000;
-    timeouts.ReadTotalTimeoutConstant = 1000;
-    //timeouts.WriteTotalTimeoutMultiplier = 10;
-    //timeouts.WriteTotalTimeoutConstant = 100;
+    // Create overlapped structure
+    OVERLAPPED ov;
+    ov.hEvent = CreateEvent(NULL,   // default security attributes
+                            TRUE,   // manual-reset event
+                            FALSE,  // not signaled
+                            NULL);   // no name
 
-    if (!SetCommTimeouts(stReceive->hCommPort, &timeouts))
-    {
-        dwErr = GetLastError();
-        sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error SetCommTimeouts: 0x%x\n", dwErr);
-        OutputDebugString(strErrorBuffer);
-        return dwErr;
-    }
+    // Initialize the rest of the OVERLAPPED structure to zero.
+    ov.Internal = 0;
+    ov.InternalHigh = 0;
+    ov.Offset = 0;
+    ov.OffsetHigh = 0;
+    BOOL bWaitCommEvent = false;
 
-    int ctr = 0;
     while(true)
     {
+        // Stop block
         if(stReceive->bRequestStop == true)
         {
-            stReceive->bStopped = true;
+            //stReceive->bStopped = true; // let idle handle the stop
+            CloseHandle(ov.hEvent); // Close handle for event
             return 0;
         }
-        
-        sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadActive: looping: %d\n", ctr++);
-        OutputDebugString(strOutputDebugBuffer);
 
-        if(ReadFile(stReceive->hCommPort, &cRead, 10, &dwRead, NULL)) // size will be 1024
+        // Wait for event from the commport
+        if (!bWaitRead)
         {
-            if(dwRead == 10)
+            // Issue read operation.
+            if (!ReadFile(stReceive->hCommPort, &cRead, 10, &dwRead, &ov)) // Wait for 10 Bytes for now
             {
-                sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadActive: char received: %s %d\n", cRead, dwRead);
-                OutputDebugString(strOutputDebugBuffer);
-
-                // Check data if valid; bail if invalid
-                // if(!validatePacket(receivedData)) {
-                //     sendData(NAK)
-                //     continue
-                // }
-
-                // ACK packet unless we want to RVI
-                //if(stReceive->bRVI == false)
-                //{
-                    //sendData(ACK)
-                //}
-
-                // process the data if it's not a duplicate...
-                //if(checkDuplicate(receivedData, recieve) == false) {
-
-                    // receivedData is not duplicate; process data
-                //    processData(receivedData)
-                //}
-
-                // exit receive thread if EOT or we want to RVI
-                //if(checkDuplicate(receivedData, recieve) == true
-                //        and receive.RVI == true or isEOT(receiveData)) {
-                //    break
-                //}
+                dwErr = GetLastError();
+                if (dwErr != ERROR_IO_PENDING)     // read not delayed?
+                {
+                    sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error ReadFile: 0x%x\n", dwErr);
+                    OutputDebugString(strErrorBuffer);
+                    CloseHandle(ov.hEvent); // Close handle for event
+                    //stReceive->bStopped = true;
+                    stReceive->bActive = false;
+                    return dwErr;
+                }
+                else
+                {
+                    bWaitRead = TRUE;
+                }
             }
-            else if(dwRead < 10)
+            else 
             {
-                OutputDebugString("fnReceiveThreadActive: ReadFile Timed-out\n");
+                // Should not be able to go here
+            }
+        } // if (!bWaitRead)
+
+        if (bWaitRead) 
+        {
+            dwWait = WaitForSingleObject(ov.hEvent, 10000); // Change timeout and put it somewhere
+            if (dwWait == WAIT_OBJECT_0)
+            {
+                if (!GetOverlappedResult(stReceive->hCommPort, &ov, &dwRead, FALSE))
+                {
+                    dwErr = GetLastError();
+                    sprintf_s(strErrorBuffer,  MAX_PATH, "fnReceiveThreadActive: Error GetOverlappedResult: 0x%x\n", dwErr);
+                    OutputDebugString(strErrorBuffer);
+                    CloseHandle(ov.hEvent); // Close handle for event
+                    
+                    //stReceive->bStopped = true;
+                    stReceive->bActive = false;
+                    return dwErr;
+                }
+                else
+                {
+                    // Read completed successfully.
+                    sprintf_s(strOutputDebugBuffer,  MAX_PATH, "fnReceiveThreadActive: String: %s %d\n", cRead, dwRead);
+                    OutputDebugString(strOutputDebugBuffer);
+                    // Check data if valid; bail if invalid
+                    // if(!validatePacket(receivedData)) {
+                    //     sendData(NAK)
+                    //     continue
+                    // }
+
+                    // ACK packet unless we want to RVI
+                    //if(stReceive->bRVI == false)
+                    //{
+                        //sendData(ACK)
+                    //}
+
+                    // process the data if it's not a duplicate...
+                    //if(checkDuplicate(receivedData, recieve) == false) {
+
+                        // receivedData is not duplicate; process data
+                    //    processData(receivedData)
+                    //}
+
+                    // exit receive thread if EOT or we want to RVI
+                    //if(checkDuplicate(receivedData, recieve) == true
+                    //        and receive.RVI == true or isEOT(receiveData)) {
+                    //    break
+                    //}
+                }
+
+                //  Reset flag so that another opertion can be issued.
+                bWaitRead = FALSE;
+            }
+            else if (dwWait == WAIT_TIMEOUT)
+            {
+                // Operation isn't complete yet. fWaitingOnRead flag isn't
+                // changed since I'll loop back around, and I don't want
+                // to issue another read until the first one finishes.
+                //
+                // This is a good time to do some background work.
+                OutputDebugString("fnReceiveThreadActive: WaitForSingleObject Timed out\n");
+                CloseHandle(ov.hEvent); // Close handle for event
+
+                //stReceive->bStopped = true;
+                stReceive->bActive = false;
+
+                return 0;
+            }
+            else
+            {
+                // Error in the WaitForSingleObject; abort.
+                // This indicates a problem with the OVERLAPPED structure's
+                // event handle.
                 break;
             }
         }
     }
 
-    stReceive->bStopped = true;
+    // for debugging
+    // comment out this part
+    CloseHandle(ov.hEvent); // Close handle for event
+
+    //stReceive->bStopped = true;
     stReceive->bActive = false;
 
     return 0;
