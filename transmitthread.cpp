@@ -44,8 +44,10 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 
 DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 {
-	TransmitArgs* pTransmit = (TransmitArgs*) lpArg
-	
+	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
+	unsigned char byReceivedChar;
+    DWORD dwBytesRead;
+
     pTransmit->pReceive->bRequestStop = true;
 	
 	if(pTransmit->pReceive->bRVI)
@@ -59,8 +61,13 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 		//TODO
 		//fnSendData(ENQ);
 	}
-	
-	While(
+
+    while(byReceivedChar != 6) // ACK 6 6 6 ^F Acknowledge, clears ENQ
+    {
+        dwBytesRead = 0;
+        ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
+        if (dwBytesRead > 0 &&
+    }
 }
 
 
