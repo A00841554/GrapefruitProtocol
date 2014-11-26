@@ -65,7 +65,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 		//fnSendData(ENQ);
 	}
 
-    while(byReceivedChar != ACK) // ACK 6 6 6 ^F Acknowledge, clears ENQ
+    while(byReceivedChar != ACK)
     {
         dwBytesRead = 0;
         ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
@@ -91,10 +91,15 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
         while(true)
         {
+            //TODO
             //fnSendData(pSCurrPacket);
             dwBytesRead = 0;
             ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
-            if (dwBytesRead == 0 && nPacketsMiss >= MAX_MISS)
+            if ((dwBytesRead == 0 && nPacketsMiss >= MAX_MISS) ||
+                (byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
+                //TODO
+                // implement fnIsEOT
+                (byReceivedChar == ACK && fnIsEOT(pSCurrPacket))
             {
                 pTransmit->bActive = false;
                 pTransmit->bStopped = true;
@@ -106,7 +111,9 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 nPacketsMiss++;
                 continue;
             }
-            else if (byReceivedChar == ACK /* && fnIsETB(pSCurrPacket)*/)
+            //TODO
+            // implement fnIsETB
+            else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
             {
                 break;
             }
