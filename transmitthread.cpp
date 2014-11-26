@@ -1,13 +1,12 @@
 #include "transmitthread.h"
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
 
-void fnTransmitIdle(TransmitArgs* pTransmit)
+DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 {
     using namespace std;
     srand(time(NULL));
 
+	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
+	
     if(pTransmit->bReset)
     {
         //Sleep(rand())
@@ -43,8 +42,12 @@ void fnTransmitIdle(TransmitArgs* pTransmit)
     }
 }
 
-void fnTransmitActive(TransmitArgs* pTransmit)
+DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 {
+	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
+	unsigned char byReceivedChar;
+    DWORD dwBytesRead;
+
     pTransmit->pReceive->bRequestStop = true;
 	
 	if(pTransmit->pReceive->bRVI)
@@ -58,8 +61,13 @@ void fnTransmitActive(TransmitArgs* pTransmit)
 		//TODO
 		//fnSendData(ENQ);
 	}
-	
-	While(
+
+    while(byReceivedChar != 6) // ACK 6 6 6 ^F Acknowledge, clears ENQ
+    {
+        dwBytesRead = 0;
+        ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
+        if (dwBytesRead > 0 &&
+    }
 }
 
 
