@@ -22,22 +22,22 @@ using namespace std;
 
 // Packetizes the data
 //char* packetizeData(st_transmit &transmit, bool forceEOT) { //forceEOT = is eot needed to be put here
-char* packetizeData() { 
-    char* packet = new char[packetSize];
-    char currData[dataSize] = "";
+char* fnPacketizeData() { 
+    char* cPacket = new char[iPacketSize];
+    char cCurrData[iDataSize] = "";
 /*
     currData = cut up to the first 1018 Bytes from data ---->> not possible yet, no buffer
     update value of Pointer to data
 */
-    char header[headerSize];
+    char cHeader[iHeaderSize];
   
     if (true)//(forceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
-        header[0] = 'F';//testing only   real one-->//char(4);    // EOT
+        cHeader[0] = 'F';//testing only   real one-->//char(4);    // EOT
     }
      else 
     {
-        header[0] = char(23);    // ETB
+        cHeader[0] = char(23);    // ETB
     }
 
     /*
@@ -49,11 +49,11 @@ char* packetizeData() {
     */
 
     if (true){//transmit.SYN1) {
-        header[1] = char(18);
-        header[1] = 'U'; // just testing
+        cHeader[1] = char(18);
+        cHeader[1] = 'U'; // just testing
         //transmit.SYN1 = false;
     } else {
-        header[1] = char(19);
+        cHeader[1] = char(19);
         //transmit.SYN1 = true;
     }
 /*
@@ -66,9 +66,9 @@ char* packetizeData() {
     }
 
     */
-    for (int i = 0; i < dataSize; i++) {
-        if (currData[i] == char(0)) {
-            currData[i] = char(3); //padding with ETX characters
+    for (int i = 0; i < iDataSize; i++) {
+        if (cCurrData[i] == char(0)) {
+            cCurrData[i] = char(3); //padding with ETX characters
         }  
     }
        
@@ -77,32 +77,32 @@ char* packetizeData() {
         Add ETX and padding to the end of currData to complete 1018 Bytes
     */
 
-    char theCRC[validationSize];
+    char cTheCRC[iValidationSize];
     /*
     Get CRC value by calling CRC(currData)
     */
         
     //group up all the pieces to create a packet 
     for (int h = 0; h < headerSize;h++)
-        packet[h] = header[h];
+        cPacket[h] = cHeader[h];
         
     for (int d = 0; d < dataSize;d++)
-        packet[d + headerSize] = currData[d];
+        cPacket[d + iHeaderSize] = cCurrData[d];
 
-    for (int v = 0; v < validationSize; v++)
-        packet[v + headerSize + dataSize] = theCRC[v];
+    for (int v = 0; v < iValidationSize; v++)
+        cPacket[v + iHeaderSize + iDataSize] = cTheCRC[v];
       
-    return packet;
+    return cPacket;
 
 } // End of packetizeData
 
-bool checkDuplicate (char packet[], st_receive receive) 
+bool checkDuplicate (char cPacket[], st_receive receive) 
 {
     //if both are SYN1 (dc2)
-    if (packet[1] == char(18) && receive.SYN1)
+    if (cPacket[1] == char(18) && receive.SYN1)
         return true;
     //if both are SYN2 (dc3)
-    if ( packet[1] == char(19) && !receive.SYN1 )
+    if ( cPacket[1] == char(19) && !receive.SYN1 )
         return true;
 
     //if its not a repeated packet
@@ -119,35 +119,44 @@ bool isEOT( char packet[] )
         return false;
 }
 
+// Check if data is ETB
+bool fnIsEOT( char cPacket[] )
+{
+    if (cPacket[0] == char(23))
+        return true;
+    else 
+        return false;
+}
+
 
 // processData will process the received valid data
-void processData(char packet[]) 
+void fnProcessData(char cPacket[]) 
 {
-    for (int i = headerSize; i < (headerSize + dataSize); i++)
+    for (int i = iHeaderSize; i < (iHeaderSize + iDataSize); i++)
     {
         //check if current char being printed is an ETX
-        if (packet[i] == char(3))
+        if (cPacket[i] == char(3))
             return;
         // if not ETX then print
-        cout << packet[i];
+        cout << cPacket[i];
     }
 }
 
 //THIS IS NOT FIXED YET !! 
 // -------------------------------------We need to use HANDLE instead of ofstream&
-void sendData(char packet[], std::ofstream& commPort) {
-    for (int i = 0; i < packetSize; i++)
-       commPort << packet[i];
+void fnSendData(char cPacket[], std::ofstream& commPort) {
+    for (int i = 0; i < iPacketSize; i++)
+       commPort << cPacket[i];
 }
  
 int main () {
-    char str1[packetSize];
+    char str1[iPacketSize];
     strcpy(str1, packetizeData());
     
     //isctrl(the character
     cout << "The full packet ---> '"; 
     
-    for (int i= 0 ; i < packetSize;i++)
+    for (int i= 0 ; i < iPacketSize;i++)
         printf("%c",str1[i]);
         
     cout << "'\nThe processed data:  '";
