@@ -15,7 +15,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 
     
     
-    for(;;)
+    while(true)
     {
         if(pTransmit->bRequestStop)
         {
@@ -47,6 +47,9 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
 	unsigned char byReceivedChar;
     DWORD dwBytesRead;
+    short nPacketsSent;
+    short nPacketsMiss;
+    char* pSCurrPacket;
 
     pTransmit->pReceive->bRequestStop = true;
 	
@@ -62,24 +65,57 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 		//fnSendData(ENQ);
 	}
 
-    while(byReceivedChar != 6) // ACK 6 6 6 ^F Acknowledge, clears ENQ
+    while(byReceivedChar != ACK) // ACK 6 6 6 ^F Acknowledge, clears ENQ
     {
         dwBytesRead = 0;
         ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
-        if (dwBytesRead > 0 &&
+        if (dwBytesRead == 0)
+        {
+            pTransmit->bActive = false;
+            pTransmit->bStopped = true;
+            pTransmit->bReset = true;
+            return;
+        }
+    }
+
+    nPacketsSent = 0;
+
+    while(true)
+    {
+        //TODO
+        // "Add || maybe" - Eric
+        //pSCurrPacket = fnPacketizeData(pTransmit, nPacketsSent >= MAX_SENT);
+        
+        nPacketsMiss = 0;
+        nPacketsSent++;
+
+        while(true)
+        {
+            //fnSendData(pSCurrPacket);
+            dwBytesRead = 0;
+            ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
+            if (dwBytesRead == 0 && nPacketsMiss >= MAX_MISS)
+            {
+                pTransmit->bActive = false;
+                pTransmit->bStopped = true;
+                pTransmit->bReset = true;
+                return;
+            }
+            else if ((dwBytesRead == 0 || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
+            {
+                nPacketsMiss++;
+                continue;
+            }
+            else if (byReceivedChar == ACK /* && fnIsETB(pSCurrPacket)*/)
+            {
+                break;
+            }
+            else if (byReceivedChar == RVI)
+            {
+                pTransmit->bActive = false;
+                pTransmit->bStopped = true;
+                return;
+            }
+        }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
