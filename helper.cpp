@@ -143,7 +143,7 @@ void fnProcessData(char byPacket[])
 
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
-    OutputDebugString("TransmitThread: send packet");
+    OutputDebugString("helper: send packet");
 
     OVERLAPPED ov;
     DWORD dwBytesWritten;
@@ -159,7 +159,7 @@ void fnSendData(char byPacket[], HANDLE hCommPort)
 void fnSendData(char byControlChar, HANDLE hCommPort)
 {
     std::stringstream sstm;
-    sstm << "TransmitThread: send " << int(byControlChar) << endl;
+    sstm << "helper: send " << int(byControlChar) << endl;
     OutputDebugString(sstm.str().c_str());
 
     OVERLAPPED ov;
@@ -171,6 +171,53 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
     WriteFile(hCommPort, &byControlChar, 1, &dwBytesWritten, &ov);
 
     WaitForSingleObject(ov.hEvent, INFINITE);
+}
+
+/**
+ * reads data from the passed serial port handle & returns the value returned by
+ *   GetOverlappedResult.
+ *
+ * @param  hCommPort handle to the serial port
+ * @param  pBuffer pointer to the character buffer to have data written into
+ * @param  bytesToRead maximum number of characters to write into the address of
+ *   the buffer
+ * @param  timeout number of milliseconds before the timeout is triggered from
+ *   when this function is invoked
+ *
+ * @return ReadDataResult::TIMEDOUT if the operation timed out,
+ *   ReadDataResult::SUCCESS if the read operation succeeded,
+ *   ReadDataResult::FAIL if the read operation, ReadDataResult::ERROR if an
+ *   error occurred during the reading fails
+ */
+int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, int timeout)
+{
+    std::stringstream sstm;
+    sstm << "helper: reading";
+    OutputDebugString(sstm.str().c_str());
+
+    OVERLAPPED ov;
+    DWORD dwRead;
+
+    memset(&ov, 0, sizeof(OVERLAPPED));
+    ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+    ReadFile(hCommPort, pBuffer, bytesToRead, &dwRead, &ov);
+
+    switch (WaitForSingleObject(ov.hEvent, timeout))
+    {
+
+        case WAIT_OBJECT_0:
+        if (!GetOverlappedResult(hCommPort, &ov, &dwRead, true))
+            return ReadDataResult::ERR;
+        else
+            return ReadDataResult::SUCCESS;
+
+        case WAIT_TIMEOUT:
+        return ReadDataResult::TIMEDOUT;
+
+        default:
+        return ReadDataResult::FAIL;
+    }
 }
 
 //int main(void)
