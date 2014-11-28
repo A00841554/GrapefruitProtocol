@@ -12,6 +12,7 @@ CRC---------------- NOT DONE YET !!
 #include <cstring>
 #include <stdlib.h>
 #include "helper.h"
+#include "crc.h"
 
 using namespace std;
 
@@ -80,6 +81,8 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     /*
     Get CRC value by calling CRC(currData)
     */
+    crcInit();
+    char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
 
     //group up all the pieces to create a packet
     for (int h = 0; h < HEADER_SIZE;h++)
@@ -94,6 +97,24 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     return byPacket;
 
 } // End of packetizeData
+
+bool fnValidatePacket(char byPacket[]) {
+
+    char byCurrData[DATA_SIZE] = "";
+    
+    for (int d = 0; d < DATA_SIZE;d++)
+        byCurrData[d] = byPacket[d + HEADER_SIZE];
+    
+    crcInit();
+    char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
+    
+    for (int v = 0; v < VALIDTION_SIZE; v++)
+        if ( byPacket[v + HEADER_SIZE + DATA_SIZE] != byTheCRC[v])
+            return false;
+            
+    return true;
+}
+
 
 bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
 {
