@@ -23,6 +23,6 @@ struct st_receive {
 
 char* packetizeData();
 bool checkDuplicate (char packet[], st_receive receive);
-bool isEOT( char packet[] );
+bool fnIsEOT( char packet[] );
 void processData(char packet[]);
 void sendData(char packet[], std::ofstream& commPort);

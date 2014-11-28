@@ -1,7 +1,10 @@
 #include "transmitthread.h"
+#include "helper.h"
 
 DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 {
+    OutputDebugString("TransmitThread: Started\n");
+
     using namespace std;
     srand(time(NULL));
 
@@ -19,8 +22,9 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     {
         if(pTransmit->bRequestStop)
         {
+            OutputDebugString("TransmitThread: Stopped\n");
             pTransmit->bStopped = true;
-            return;
+            return 0;
         }
 
         if(!pTransmit->pTransmitBuffer->empty()) 
@@ -38,18 +42,21 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
         pTransmit->bActive = true;
         fnTransmitActive(pTransmit);
 
-        return;
+        OutputDebugString("TransmitThread: Stopped\n");
+        return 0;
     }
 }
 
 DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 {
+    OutputDebugString("TransmitThread: Active\n");
+
 	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
-	unsigned char byReceivedChar;
+	unsigned char byReceivedChar = 0;
     DWORD dwBytesRead;
     short nPacketsSent;
     short nPacketsMiss;
-    char* pSCurrPacket;
+    char pSCurrPacket[packetSize];
 
     pTransmit->pReceive->bRequestStop = true;
 	
@@ -68,13 +75,13 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     while(byReceivedChar != ACK)
     {
         dwBytesRead = 0;
-        ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
+        ReadFile((*pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
         if (dwBytesRead == 0)
         {
             pTransmit->bActive = false;
             pTransmit->bStopped = true;
             pTransmit->bReset = true;
-            return;
+            return 0;
         }
     }
 
@@ -94,17 +101,17 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             //TODO
             //fnSendData(pSCurrPacket);
             dwBytesRead = 0;
-            ReadFile(pTransmit->hCommPort, &byReceivedChar, 1, &dwBytesRead, NULL);
+            ReadFile(*(pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
             if ((dwBytesRead == 0 && nPacketsMiss >= MAX_MISS) ||
                 (byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
                 //TODO
                 // implement fnIsEOT
-                (byReceivedChar == ACK && fnIsEOT(pSCurrPacket))
+                (byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
                 pTransmit->bActive = false;
                 pTransmit->bStopped = true;
                 pTransmit->bReset = true;
-                return;
+                return 0;
             }
             else if ((dwBytesRead == 0 || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
             {
@@ -113,7 +120,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             }
             //TODO
             // implement fnIsETB
-            else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
+            else if (byReceivedChar == ACK && !fnIsEOT(pSCurrPacket))
             {
                 break;
             }
@@ -121,7 +128,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             {
                 pTransmit->bActive = false;
                 pTransmit->bStopped = true;
-                return;
+                return 0;
             }
         }
     }

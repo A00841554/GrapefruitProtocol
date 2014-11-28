@@ -22,7 +22,8 @@ struct TransmitArgs
     
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
 
-    HANDLE hCommPort;   // handle to the serial port
+    OVERLAPPED* pOverlapped;// pointer to overlapped
+    HANDLE* pHCommPort;    // reference to serial port
 };
 
 /** structure passed to receive thread as thread arguments. */
@@ -36,8 +37,9 @@ struct ReceiveArgs
     BOOL bSYN1;         // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
-
-    HANDLE hCommPort;   // handle to the serial port
+    
+    OVERLAPPED* pOverlapped;// pointer to overlapped
+    HANDLE* pHCommPort;    // reference to serial port
 };
 
 /** structure passed to the control thread as thread arguments. */
@@ -48,7 +50,8 @@ struct ControlArgs
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
 
-    HANDLE hCommPort;   // handle to the serial port
+    OVERLAPPED* pOverlapped;// pointer to overlapped
+    HANDLE* pHCommPort;     // reference to serial port
 };
 
 DWORD WINAPI fnControl(LPVOID args);

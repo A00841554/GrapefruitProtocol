@@ -111,7 +111,7 @@ bool checkDuplicate (char packet[], st_receive receive)
 }
 
 // Check if data is EOT
-bool isEOT( char packet[] )
+bool fnIsEOT( char packet[] )
 {
     if (packet[0] == char(4))
         return true;
@@ -140,23 +140,23 @@ void sendData(char packet[], std::ofstream& commPort) {
        commPort << packet[i];
 }
  
-int main () {
-    char str1[packetSize];
-    strcpy(str1, packetizeData());
+//int main () {
+//    char str1[packetSize];
+//    strcpy_s(str1, packetizeData());
     
-    //isctrl(the character
-    cout << "The full packet ---> '"; 
+//    //isctrl(the character
+//    cout << "The full packet ---> '"; 
     
-    for (int i= 0 ; i < packetSize;i++)
-        printf("%c",str1[i]);
+//    for (int i= 0 ; i < packetSize;i++)
+//        printf("%c",str1[i]);
         
-    cout << "'\nThe processed data:  '";
-    processData(str1);
-    cout << "'";
+//    cout << "'\nThe processed data:  '";
+//    processData(str1);
+//    cout << "'";
     
-    //testing purposes
-    ofstream myfile ("example.txt");
-    sendData(str1, myfile);
+//    //testing purposes
+//    ofstream myfile ("example.txt");
+//    sendData(str1, myfile);
         
-    return 0;
-}
+//    return 0;
+//}

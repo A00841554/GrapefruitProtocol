@@ -1,5 +1,6 @@
 #include "controlthread.h"
 #include "receivethread.h"
+#include "transmitthread.h"
 
 DWORD WINAPI fnControl(LPVOID args)
 {
@@ -19,7 +20,8 @@ DWORD WINAPI fnControl(LPVOID args)
     transmitArgs.bSYN1           = true;
     transmitArgs.pReceive        = &receiveArgs;
     transmitArgs.pTransmitBuffer = controlArgs->pTransmitBuffer;
-    transmitArgs.hCommPort    = controlArgs->hCommPort;
+    transmitArgs.pOverlapped     = controlArgs->pOverlapped;
+    transmitArgs.pHCommPort      = controlArgs->pHCommPort;
 
     // initialize receive thread structures
     receiveArgs.bRequestStop = false;
@@ -28,7 +30,8 @@ DWORD WINAPI fnControl(LPVOID args)
     receiveArgs.bRVI         = false;
     receiveArgs.bSYN1        = false;
     receiveArgs.pTransmit    = &transmitArgs;
-    receiveArgs.hCommPort    = controlArgs->hCommPort;
+    receiveArgs.pOverlapped  = controlArgs->pOverlapped;
+    receiveArgs.pHCommPort   = controlArgs->pHCommPort;
 
     // enter main control loop
     while (true)
@@ -63,6 +66,9 @@ DWORD WINAPI fnControl(LPVOID args)
             {
                 transmitArgs.bRequestStop = false;
                 transmitArgs.bStopped = false;
+                DWORD threadId;
+                CreateThread(NULL, 0, fnTransmitIdle, &transmitArgs, 0,
+                        &threadId);
             }
         }
 

@@ -92,16 +92,6 @@ CommPort::CommPort(std::string portName)
     // initialize variables from function parameters
     mPortName = portName;
 
-    // set up COMMTIMEOUTS structure
-    memset(&mCommTimeouts, 0, sizeof(COMMTIMEOUTS));
-    mCommTimeouts.ReadIntervalTimeout = DEF_READ_INTERVAL_TIMEOUT;
-    mCommTimeouts.ReadTotalTimeoutConstant = DEF_READ_TOTAL_TIMEOUT_CONSTANT;
-    mCommTimeouts.ReadTotalTimeoutMultiplier =
-            DEF_READ_TOTAL_TIMEOUT_MULTIPLIER;
-    mCommTimeouts.WriteTotalTimeoutConstant = DEF_WRITE_TOTAL_TIMEOUT_CONSTANT;
-    mCommTimeouts.WriteTotalTimeoutMultiplier =
-            DEF_WRITE_TOTAL_TIMEOUT_MULTIPLIER;
-
     // set up COMMCONFIG structure
     memset(&mCommConfig, 0, sizeof(COMMCONFIG));
     mCommConfig.dwSize = sizeof(COMMCONFIG);
@@ -356,6 +346,16 @@ int CommPort::fnOpen(void)
         return INVALID_OPERATION_FOR_STATE;
     }
 
+    // set up overlapped structure
+    memset(&mOverlapped, 0, sizeof(OVERLAPPED));
+    mOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+    // verify that overlapped was set up correctly; if not, bail out
+    if (mOverlapped.hEvent == NULL)
+    {
+        return FAIL;
+    }
+
     // try to open the port
     mHComm = CreateFile(
             mPortName.c_str(),              // lpFileName
@@ -373,7 +373,7 @@ int CommPort::fnOpen(void)
             && GetCommState(mHComm, &mDcb)
             && BuildCommDCB("96,N,8,1", &mDcb)
             && SetCommState(mHComm, &mDcb)
-            && SetCommTimeouts(mHComm, &mCommTimeouts))
+            && SetCommMask(mHComm, EV_RXCHAR))
     {
 
         // set status to reflect status of serial port
@@ -427,9 +427,9 @@ int CommPort::fnClose(void)
         return INVALID_OPERATION_FOR_STATE;
 
     // try to close the port
-    if (CloseHandle(mHComm))
+    if (CloseHandle(mHComm)
+            && CloseHandle(mOverlapped.hEvent))
     {
-
         mStatus = Status::CLOSED;    // update status
         return SUCCESS;              // return...
     }
@@ -439,222 +439,46 @@ int CommPort::fnClose(void)
     }
 }
 
-HANDLE CommPort::fnGetCommHandle(void)
+OVERLAPPED* CommPort::fnGetOverlapped(void)
 {
-    return mHComm;
+    return &mOverlapped;
 }
 
-/**
- * sends the passed character out through the serial port
- *
- * @class        CommPort
- *
- * @method       fnSend
- *
- * @date         2014-09-26
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes
- *
- * INVALID_OPERATION_FOR_STATE is returned when the CommPort instance is CLOSED;
- *     data cannot be sent through a closed serial port
- *
- * SUCCESS is returned when the data is successfully sent out through the serial
- *     port
- *
- * FAIL is returned when the character fails to be sent out the serial port for
- *     some reason
- *
- * @signature    int CommPort::fnSend(char c)
- *
- * @param        c   character to be sent out through the serial port
- *
- * @return       return code which indicated the status of the operation:
- *     INVALID_OPERATION_FOR_STATE, SUCCESS, FAIL
- */
-/*int CommPort::fnSend(char c)
+HANDLE* CommPort::fnGetCommHandle(void)
 {
-    DWORD bytesWritten = 0; // number of bytes sent out serial port
+    return &mHComm;
+}
 
-    // verify state; cannot send characters if serial port is closed
-    if (mStatus == Status::CLOSED)
-    {
-        return INVALID_OPERATION_FOR_STATE;
-    }
+void CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)
+{
+    DWORD dwWritten;
+    BOOL fRes;
 
-    // send the character
-    if (WriteFile(mHComm, &c, 1, &bytesWritten, &mWriteOverlapped))
-    {
-        return SUCCESS;
-    }
-    else
+    // Issue write.
+    if (!WriteFile(mHComm, pBuffer, nBytesToSend, &dwWritten, &mOverlapped))
     {
         if (GetLastError() != ERROR_IO_PENDING)
         {
-            // WriteFile failed, but isn't delayed. Report error and abort.
-            return FAIL;
+             // WriteFile failed, but it isn't delayed. Report error and abort.
+             fRes = FALSE;
         }
         else
         {
             // Write is pending.
-            switch(WaitForSingleObject(mWriteOverlapped.hEvent, INFINITE))
+            if (!GetOverlappedResult(mHComm, &mOverlapped, &dwWritten, TRUE))
             {
-
-                // OVERLAPPED structure's event has been signaled.
-                case WAIT_OBJECT_0:
-                {
-                    if (!GetOverlappedResult(mHComm, &mWriteOverlapped,
-                            &bytesWritten, FALSE))
-                    {
-                        return FAIL;
-                    }
-                    else
-                    {
-                        // Write operation completed successfully.
-                        return SUCCESS;
-                    }
-                }
-
-                // An error has occurred in WaitForSingleObject.
-                // This usually indicates a problem with the
-                // OVERLAPPED structure's event handle.
-                default:
-                {
-                    return FAIL;
-                }
-            }
-        }
-    }
-}*/
-
-/**
- * reads characters from the communication port
- *
- * @class        CommPort
- *
- * @method       fnRead
- *
- * @date         2014-09-26
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes
- *
- * tries to read characters from the serial port. if data is read, function will
- *     invoke the onReadCallback function that was passed in through the
- *     constructor of this instance.
- *
- * SUCCESS is returned when the read call was a success. this could mean that
- *     something was read from the port, and the callback function was invoked,
- *     or nothing was read from the port.
- *
- * FAIL is returned when the read operation fails.
- *
- * INVALID_OPERATION_FOR_STATE is returned when the port is closed; one cannot
- *     read from the port when it is closed.
- *
- * @signature    int CommPort::fnRead(void)
- *
- * @return       return code indicating the result of the operation:
- *     INVALID_OPERATION_FOR_STATE , SUCCESS , FAIL
- */
-/*int CommPort::fnRead(void)
-{
-    // verify state; cannot receive characters if port is closed
-    if (mStatus == Status::CLOSED)
-    {
-        return INVALID_OPERATION_FOR_STATE;
-    }
-
-    if (mReadInProgress == FALSE)
-    {
-        // read the character and invoke the onRead callback if character was
-        // successfully read
-        mBytesRead = 0;
-        if (ReadFile(mHComm, &mInBuffer, 1, &mBytesRead, &mReadOverlapped))
-        {
-
-            // read succeed instantly; handle it
-            if (mBytesRead != 0)
-            {
-                mOnRead(mInBuffer);
-            }
-            return SUCCESS;
-
-        }
-        else
-        {
-            if (GetLastError() != ERROR_IO_PENDING)
-            {
-                // read instantly failed for some reason
-                return FAIL;
-
+                fRes = FALSE;
             }
             else
             {
-                // read is delayed
-                mReadInProgress = TRUE;
-                return SUCCESS;
-
+                // Write operation completed successfully.
+                fRes = TRUE;
             }
         }
     }
     else
     {
-        switch(WaitForSingleObject(mReadOverlapped.hEvent, READ_TIMEOUT))
-        {
-
-            // Read completed.
-            case WAIT_OBJECT_0:
-            {
-                if (GetOverlappedResult(mHComm, &mReadOverlapped, &mBytesRead,
-                        FALSE))
-                {
-                    // Read completed successfully; handle successful read
-                    if (mBytesRead != 0)
-                    {
-                        mOnRead(mInBuffer);
-                    }
-                    return SUCCESS;
-                }
-                else
-                {
-                    // Error in communications; report it.
-                    return FAIL;
-                }
-
-                // Reset flag so that another operation can be issued.
-                mReadInProgress = FALSE;
-                return SUCCESS;
-            }
-
-            // still delaying
-            case WAIT_TIMEOUT:
-            {
-                // Operation isn't complete yet. fWaitingOnRead flag isn't
-                // changed since I'll loop back around, and I don't want
-                // to issue another read until the first one finishes.
-                //
-                // This is a good time to do some background work.
-                return SUCCESS;
-            }
-
-            default:
-            {
-                // Error in the WaitForSingleObject; abort.
-                // This indicates a problem with the OVERLAPPED structure's
-                // event handle.
-                return FAIL;
-            }
-        }
+        // WriteFile completed immediately.
+        fRes = TRUE;
     }
-}*/
+}

@@ -1,3 +1,5 @@
+#ifndef _COMMPORT_H_
+#define _COMMPORT_H_
 
 /**
  * declares a CommPort class, related constants, and return codes. definitions
@@ -59,36 +61,10 @@ const LPSECURITY_ATTRIBUTES LP_DEF_SECURITY_ATTRS = NULL;
 const DWORD DW_DEF_CREATION_DISTRIBUTION = OPEN_EXISTING;
 
 /** default dwFlagsAndAttributes value for the CreateFile function */
-const DWORD DW_DEF_FLAGS_AND_ATTRS = NULL;
-//const DWORD DW_DEF_FLAGS_AND_ATTRS = FILE_FLAG_OVERLAPPED;
+const DWORD DW_DEF_FLAGS_AND_ATTRS = FILE_FLAG_OVERLAPPED;
 
 /** default hTemplateFile value for the CreateFile function */
 const HANDLE H_DEF_TEMPLATE_FILE = NULL;
-
-
-
-
-/////////////////////////////////////////////
-// Serial port send/receive timeout values //
-/////////////////////////////////////////////
-
-/** time in milliseconds to wait for delayed reading in asynchronous IO */
-const int READ_TIMEOUT = 5000;
-
-/** default value for readIntervalTimeout of serial port timeouts */
-const int DEF_READ_INTERVAL_TIMEOUT = 10;
-
-/** default value for readTotalTimeoutConstant of serial port timeouts */
-const int DEF_READ_TOTAL_TIMEOUT_CONSTANT = 10;
-
-/** default value for readTotalTimeoutMultiplier of serial port timeouts */
-const int DEF_READ_TOTAL_TIMEOUT_MULTIPLIER = 10;
-
-/** default value for writeTotalTimeoutConstant of serial port timeouts */
-const int DEF_WRITE_TOTAL_TIMEOUT_CONSTANT = 10;
-
-/** default value for writeTotalTimeoutMultiplier of serial port timeouts */
-const int DEF_WRITE_TOTAL_TIMEOUT_MULTIPLIER = 10;
 
 
 
@@ -186,7 +162,9 @@ class CommPort
         int fnConfigurePort(HWND);
         int fnOpen(void);
         int fnClose(void);
-        HANDLE fnGetCommHandle(void);
+        OVERLAPPED* fnGetOverlapped(void);
+        HANDLE* fnGetCommHandle(void);
+        void fnSend(char*, DWORD);
 
     private:
         /** status of serial port; it can be OPENED, or CLLOSED */
@@ -207,9 +185,14 @@ class CommPort
         /** used to configure the serial port */
         COMMCONFIG mCommConfig;
 
+        /** overlapped structure used by the serialPort */
+        OVERLAPPED mOverlapped;
+
         /**
          * structure containing timeout variables for reading and writing to and
          *   from the comm port
          */
         COMMTIMEOUTS mCommTimeouts;
 };
+
+#endif
