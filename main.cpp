@@ -31,6 +31,7 @@
 #define STRICT
 
 #include <windows.h>
+#include <WindowsX.h>
 #include <sstream>
 #include <iostream>
 #include "main.h"
@@ -50,8 +51,6 @@ const char NAME[] = "Comm Shell";
 const char DEFAULT_PORT_NAME[] = "COM3";
 
 
-
-
 /////////////////////////
 // Application objects //
 /////////////////////////
@@ -65,7 +64,11 @@ CommPort* oCommPort;
 /** application object that handles many of the windows events */
 Application* oApp;
 
-
+HWND hwnd;
+HWND hwndRight;
+HWND hwndLeft;
+HWND hwndStatus;
+HWND hwndEdit;
 
 
 //////////////////////////
@@ -74,9 +77,6 @@ Application* oApp;
 
 LRESULT CALLBACK WndProc (HWND, UINT, WPARAM, LPARAM);
 void fnOnReceiveCallback(char c);
-
-
-
 
 //////////////////////////
 // Function definitions //
@@ -129,7 +129,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         Wcl.hCursor = LoadCursor(NULL, IDC_ARROW);
         Wcl.lpfnWndProc = WndProc;
         Wcl.hInstance = hInst;
-        Wcl.hbrBackground = (HBRUSH) GetStockObject(BLACK_BRUSH);
+        Wcl.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
         Wcl.lpszClassName = NAME;
         Wcl.lpszMenuName = "MYMENU";
         Wcl.cbClsExtra = 0;
@@ -144,24 +144,134 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
     // create and show the window, and instantiate application objects
     {
 
-        HFONT hFont =
-                CreateFont(0, 10, 0, 0, FW_DONTCARE, FALSE, FALSE,  // hFont
-                        FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
-                        CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH,
-                        TEXT("Courier New"));
+        //HFONT hFont =
+        //        CreateFont(0, 10, 0, 0, FW_DONTCARE, FALSE, FALSE,  // hFont
+        //                FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+        //                CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH,
+        //                TEXT("Courier New"));
 
-        FontColors defaultFontColors = {
-                RGB(255, 255, 0),   // textColor
-                RGB(0, 0, 0)        // backgroundColor
-        };
+        //FontColors defaultFontColors = {
+        //        RGB(255, 255, 0),   // textColor
+        //        RGB(0, 0, 0)        // backgroundColor
+        //};
 
         HWND hwnd = CreateWindow(NAME, NAME, WS_OVERLAPPEDWINDOW, 10, 10,
-                600, 400, NULL, NULL, hInst, NULL);
+                815, 700, NULL, NULL, hInst, NULL);
+        
 
+        // Create panels
+        HDC hdcMain = GetDC(hwnd);
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+
+        int leftWidth = 300;
+        int rightWidth = 300;
+
+        HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
+
+        // Create an Sent box
+        HWND hwndLeft = CreateWindowEx (WS_EX_CLIENTEDGE,
+            "EDIT",                             // String or Class name from the Register class
+            "",                                 // Window name
+            WS_CHILD | WS_VSCROLL |
+            WS_HSCROLL | WS_VISIBLE |
+            ES_MULTILINE | ES_READONLY |
+            ES_AUTOHSCROLL | ES_AUTOVSCROLL,    // Style
+            rect.left + 20,                     // Initial horizontal position
+            rect.top + 20,                      // Initial vertical position
+            leftWidth,                          // width
+            430,                                // height
+            hwnd,                               // parent [optional]
+            NULL,                               // menu [optional]
+            GetModuleHandle(NULL),              // instance handle
+            NULL);                              // CreateStruct [optional]
+
+        // Create an Received box
+        HWND hwndRight = CreateWindowEx (WS_EX_CLIENTEDGE,
+            "EDIT",                             // String or Class name from the Register class
+            "",                                 // Window name
+            WS_CHILD | WS_VSCROLL | WS_HSCROLL |WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOHSCROLL | ES_AUTOVSCROLL,   // Style
+            rect.left + 20 + 15 + leftWidth,           // Initial horizontal position
+            rect.top + 20,                        // Initial vertical position
+            rightWidth,                           // width
+            430,     // height
+            hwnd,                                 // parent [optional]
+            NULL,                                 // menu [optional]
+            GetModuleHandle(NULL),                            // instance handle
+            NULL);                                // CreateStruct [optional]
+        
+        // Create an Stats box
+        HWND hwndStats = CreateWindowEx (WS_EX_CLIENTEDGE,
+            "EDIT",                            // String or Class name from the Register class
+            "",                              // Window name
+            WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY,   // Style
+            650,           // Initial horizontal position
+            rect.top + 20,                        // Initial vertical position
+            130,                           // width
+            430,     // height
+            hwnd,                                 // parent [optional]
+            NULL,                                 // menu [optional]
+            GetModuleHandle(NULL),                            // instance handle
+            NULL);                                // CreateStruct [optional]
+
+        // Create an input box
+        hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
+            "EDIT",
+            "",
+            WS_CHILD|WS_VISIBLE|
+            ES_MULTILINE|ES_AUTOVSCROLL|ES_AUTOHSCROLL,
+            20,
+            rect.bottom - 145,
+            615,
+            60,
+            hwnd,
+            (HMENU)IDC_MAIN_EDIT,
+            GetModuleHandle(NULL),
+            NULL);
+
+        SendMessage(hwndEdit,
+            WM_SETFONT,
+            (WPARAM)hfDefault,
+            MAKELPARAM(FALSE,0));
+
+        // Create a push button
+        HWND hWndButton=CreateWindowEx(NULL,
+            "BUTTON",
+            "Send",
+            WS_TABSTOP|WS_VISIBLE|
+            WS_CHILD|BS_DEFPUSHBUTTON,
+            650,
+            rect.bottom - 145,
+            130,
+            60,
+            hwnd,
+            (HMENU)IDC_MAIN_BUTTON,
+            GetModuleHandle(NULL),
+            NULL);
+        SendMessage(hWndButton,
+            WM_SETFONT,
+            (WPARAM)hfDefault,
+            MAKELPARAM(FALSE,0));
+
+        // Create an status bar
+        HWND hwndStatus = CreateWindowEx(WS_EX_CLIENTEDGE,                       // no extended styles
+            "EDIT",         // name of status bar class
+            "",           // no text when first created
+            WS_CHILD |WS_VSCROLL| WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // creates a visible child window
+            20,
+            rect.bottom - 60,
+            leftWidth + rightWidth + 15 + 15 + 130,
+            40,              
+            hwnd,              // handle to parent window
+            NULL,       // child window identifier
+            GetModuleHandle(NULL),                   // handle to application instance
+            NULL);  
+        
         // create objects
-        oTerminal = new Terminal(&hwnd, &hFont, &defaultFontColors);
+        oTerminal = new Terminal(&hwnd, &hwndLeft, &hwndRight, &hwndStatus);
         oCommPort = new CommPort(DEFAULT_PORT_NAME);
         oApp = new Application(hwnd, oCommPort, oTerminal);
+
 
         // set the application's mode & comm port
         (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
@@ -229,14 +339,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 
     switch (Message)
     {
+        case WM_CREATE:
+        {
 
+        }
+        break;
+        
         ///////////////////////////////
         // Process menu bar messages //
         ///////////////////////////////
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
-
+                case IDC_MAIN_BUTTON:
+                {
+                    MessageBox(NULL, "HIT ENTER", "INFO", NULL);
+                            break;
+                }
                 ///////////////////
                 // set port name //
                 ///////////////////
@@ -336,9 +455,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
             // get device context for painting
             hdc = BeginPaint (hwnd, &paintstruct);
 
-            // print our received characters in the client area
-            GetClientRect(hwnd, &clientRectangle);
-            (*oTerminal).fnRedrawScreen(&clientRectangle, hdc);
+            // Print labels
+            TextOut(hdc, 20, 0, "Sent", 4);
+            TextOut(hdc, 335, 0, "Received", 8);
+            TextOut(hdc, 650, 0, "Stats", 5);
+            TextOut(hdc, 20, 475, "Input", 5);
+            TextOut(hdc, 20, 560, "Status", 6);
 
             // release device context...
             EndPaint (hwnd, &paintstruct);

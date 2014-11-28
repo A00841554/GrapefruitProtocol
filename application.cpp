@@ -450,7 +450,6 @@ void Application::fnHelp(void)
     // print whatever was in the string stream to the terminal
     (*mPtrTerminal).fnClearScreen();
     (*mPtrTerminal).fnPrint(mStringStream.str());
-    (*mPtrTerminal).fnSetClearScreenBeforeNextPrint();
 }
 
 /**
@@ -498,7 +497,7 @@ void Application::fnOnReceive(char c)
             // backspace key; remove character
             case 8:
             {
-                (*mPtrTerminal).fnBackspace();
+                //(*mPtrTerminal).fnBackspace();
                 break;
             }
 

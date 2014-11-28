@@ -82,47 +82,14 @@ const static int TERMINAL_TEXT_PADDING = 3;
 class Terminal
 {
     public:
-        Terminal(HWND*, HFONT*, FontColors*);
-        void fnAppendString(std::string, FontColors* = NULL);
-        void fnPrint(std::string, FontColors* = NULL);
-        void fnBackspace(void);
+        Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndStatus);
+        void fnPrint(std::string);
         void fnClearScreen(void);
-        void fnRedrawScreen(RECT* = NULL, HDC = NULL);
-        void fnSetClearScreenBeforeNextPrint(void);
 
     private:
 
-        /**
-         * text displayed on the Terminal. text is saved so it can be repainted
-         *   to the screen as necessary
-         */
-        std::string mDisplayedText;
-
-        /**
-         * array of FontColors that define the background and foreground color
-         *   of the character that's printed in the corresponding index
-         */
-        std::vector<FontColors*> mFontColors;
-
         /** handle to window that things are displayed on */
-        HWND mHwnd;
-
-        /** information about font used on the Terminal */
-        HFONT* mPtrHFont;
-
-        /** font colors used if font color is not specified in the print function */
-        FontColors* mPtrDefaultFontColors;
-
-        /** client area of the window where the terminal's text is printed */
-        RECT mDisplayArea;
-
-        /**
-         * when set to true, the next time fnPrint is called, the screen will be
-         *   cleared immediately before the new text is printed. once this
-         *   happens, the flag is set back to false
-         */
-        bool mClearScreenNextPrint;
-        void fnPrintText(HDC, RECT*, int);
+        HWND* hwndMain, *hwndSent, *hwndReceived, *hwndStsBar;
 };
 
 #endif
