@@ -129,7 +129,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         Wcl.hCursor = LoadCursor(NULL, IDC_ARROW);
         Wcl.lpfnWndProc = WndProc;
         Wcl.hInstance = hInst;
-        Wcl.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
+        Wcl.hbrBackground = (HBRUSH) GetStockObject(LTGRAY_BRUSH);
         Wcl.lpszClassName = NAME;
         Wcl.lpszMenuName = "MYMENU";
         Wcl.cbClsExtra = 0;
@@ -455,6 +455,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
             // get device context for painting
             hdc = BeginPaint (hwnd, &paintstruct);
 
+            SetBkMode(hdc, TRANSPARENT); 
             // Print labels
             TextOut(hdc, 20, 0, "Sent", 4);
             TextOut(hdc, 335, 0, "Received", 8);
