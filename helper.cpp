@@ -4,7 +4,7 @@ packetizeData------ DONE !! ---> need some final changes (buffer)
 checkDuplicate----- DONE !!
 processData-------- DONE !!
 isEOT-------------- DONE !!
-sendData----------- NOT DONE YET !!
+sendData----------- DONE !!
 CRC---------------- NOT DONE YET !!
 */
 #include <fstream>
@@ -12,7 +12,6 @@ CRC---------------- NOT DONE YET !!
 #include <cstring>
 #include <stdlib.h>
 #include "helper.h"
-#include "controlthread.h"
 
 using namespace std;
 
@@ -27,7 +26,7 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 */
     char cHeader[iHeaderSize];
   
-    if (forceEOT)  // OR PACKET IS NOT FULL ----> Implement later
+    if (bForceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
         cHeader[0] = char(4);    // EOT
     }
@@ -141,10 +140,13 @@ void fnProcessData(char cPacket[])
     }
 }
 
-//THIS IS NOT FIXED YET !! 
-// -------------------We need to use HANDLE instead of ofstream&
-void fnSendData(char cPacket[], std::ofstream& commPort) 
+void fnSendData(char cPacket[], HANDLE hCommPort) 
 {
-    for (int i = 0; i < iPacketSize; i++)
-       commPort << cPacket[i];
+    DWORD dwBytesWritten;
+    WriteFile(hCommPort, cPacket, iPacketSize, &dwBytesWritten, NULL);
+}
+
+int main(void)
+{
+    return 0;
 }
