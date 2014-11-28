@@ -13,6 +13,7 @@ void fnProcessData(char byPacket[]);
 void fnSendData(char byPacket[], HANDLE commPort);
 void fnSendData(char byControlChar, HANDLE hCommPort);
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout);
+void fnDropHeadPacketData(TransmitArgs& transmit);
 
 namespace ReadDataResult
 {

@@ -13,7 +13,7 @@ CRC---------------- NOT DONE YET !!
 #include <cstring>
 #include <stdlib.h>
 #include "helper.h"
-#include "crc.h"
+//#include "crc.h"
 
 using namespace std;
 
@@ -27,14 +27,12 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     char* byTheCRC   = byCurrData + DATA_SIZE;
     TransmitBuffer* pTransmitBuffer = transmit.pTransmitBuffer;
 
-    // fill packet with data (and or padding)
+    // fill packet with data (and padding)
     for (int i = 0; i < DATA_SIZE; i++)
     {
-        if (!pTransmitBuffer->empty())
+        if (i < transmit.pTransmitBuffer->size())
         {
-            char c = transmit.pTransmitBuffer->front();
-            transmit.pTransmitBuffer->erase(transmit.pTransmitBuffer->begin());
-            byCurrData[i] = c;
+            byCurrData[i] = transmit.pTransmitBuffer->at(i);
         }
         else
         {
@@ -65,8 +63,9 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     /*
     Get CRC value by calling CRC(currData)
     */
-    crcInit();
-    char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
+    // eric commented out crc code, because he couldnt find it on his machine
+    //crcInit();
+    //char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
 
     //group up all the pieces to create a packet
     for (int h = 0; h < HEADER_SIZE;h++)
@@ -82,6 +81,13 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 
 } // End of packetizeData
 
+void fnDropHeadPacketData(TransmitArgs& transmit)
+{
+    auto packetStart = transmit.pTransmitBuffer->begin();
+    auto packetEnd = transmit.pTransmitBuffer->begin() + DATA_SIZE;
+    transmit.pTransmitBuffer->erase(packetStart, packetEnd);
+}
+
 bool fnValidatePacket(char byPacket[]) {
 
     char byCurrData[DATA_SIZE] = "";
@@ -89,8 +95,9 @@ bool fnValidatePacket(char byPacket[]) {
     for (int d = 0; d < DATA_SIZE;d++)
         byCurrData[d] = byPacket[d + HEADER_SIZE];
     
-    crcInit();
-    char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
+    // eric commented out crc code, because he couldnt find it on his machine
+    //crcInit();
+    //char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
     
     for (int v = 0; v < VALIDTION_SIZE; v++)
         if ( byPacket[v + HEADER_SIZE + DATA_SIZE] != byTheCRC[v])

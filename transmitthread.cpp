@@ -118,6 +118,8 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
             else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
             {
+                // data sent succesfullt; remove data sent in packet from transmit buffer
+                fnDropHeadPacketData(*pTransmit);
                 delete pSCurrPacket;
                 break;
             }
