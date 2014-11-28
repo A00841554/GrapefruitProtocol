@@ -16,23 +16,23 @@ CRC---------------- NOT DONE YET !!
 using namespace std;
 
 // Packetizes the data
-char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
+unsigned char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 { //forceEOT = is eot needed to be put here
-    char* cPacket = new char[PACKET_SIZE];
-    char cCurrData[DATA_SIZE] = "";
+    unsigned char* byPacket = new unsigned char[PACKET_SIZE];
+    unsigned char byCurrData[DATA_SIZE] = "";
 /*
     currData = cut up to the first 1018 Bytes from data ---->> not possible yet, no buffer
     update value of Pointer to data
 */
-    char cHeader[HEADER_SIZE];
+    unsigned char byHeader[HEADER_SIZE];
 
     if (bForceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
-        cHeader[0] = char(4);    // EOT
+        byHeader[0] = unsigned char(4);    // EOT
     }
      else
     {
-        cHeader[0] = char(23);    // ETB
+        byHeader[0] = unsigned char(23);    // ETB
     }
 
     /*
@@ -45,12 +45,12 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 
     if (transmit.bSYN1)
     {
-        cHeader[1] = char(18);
+        byHeader[1] = unsigned char(18);
         transmit.bSYN1 = false;
     }
     else
     {
-        cHeader[1] = char(19);
+        byHeader[1] = unsigned char(19);
         transmit.bSYN1 = true;
     }
 /*
@@ -65,9 +65,9 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     */
     for (int i = 0; i < DATA_SIZE; i++)
     {
-        if (cCurrData[i] == char(0))
+        if (byCurrData[i] == unsigned char(0))
         {  // if null
-            cCurrData[i] = char(3);     //padding with ETX characters
+            byCurrData[i] = unsigned char(3);     //padding with ETX unsigned characters
         }
     }
 
@@ -76,32 +76,32 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
         Add ETX and padding to the end of currData to complete 1018 Bytes
     */
 
-    char cTheCRC[VALIDTION_SIZE];
+    unsigned char byTheCRC[VALIDTION_SIZE];
     /*
     Get CRC value by calling CRC(currData)
     */
 
     //group up all the pieces to create a packet
     for (int h = 0; h < HEADER_SIZE;h++)
-        cPacket[h] = cHeader[h];
+        byPacket[h] = byHeader[h];
 
     for (int d = 0; d < DATA_SIZE;d++)
-        cPacket[d + HEADER_SIZE] = cCurrData[d];
+        byPacket[d + HEADER_SIZE] = byCurrData[d];
 
     for (int v = 0; v < VALIDTION_SIZE; v++)
-        cPacket[v + HEADER_SIZE + DATA_SIZE] = cTheCRC[v];
+        byPacket[v + HEADER_SIZE + DATA_SIZE] = byTheCRC[v];
 
     return cPacket;
 
 } // End of packetizeData
 
-bool checkDuplicate (char cPacket[], ReceiveArgs &receive)
+bool checkDuplicate (unsigned char byPacket[], ReceiveArgs &receive)
 {
     //if both are bSYN1 (dc2)
-    if (cPacket[1] == char(18) && receive.bSYN1)
+    if (byPacket[1] == unsigned char(18) && receive.bSYN1)
         return true;
     //if both are bSYN2 (dc3)
-    if ( cPacket[1] == char(19) && !receive.bSYN1 )
+    if (byPacket[1] == unsigned char(19) && !receive.bSYN1 )
         return true;
 
     //if its not a repeated packet
@@ -110,40 +110,46 @@ bool checkDuplicate (char cPacket[], ReceiveArgs &receive)
 }
 
 // Check if data is EOT
-bool fnIsEOT( char cPacket[] )
+bool fnIsEOT( unsigned char byPacket[] )
 {
-    if (cPacket[0] == char(4))
+    if (byPacket[0] == unsigned char(4))
         return true;
     else
         return false;
 }
 
 // Check if data is ETB
-bool fnIsETB( char cPacket[] )
+bool fnIsETB( unsigned char byPacket[] )
 {
-    if (cPacket[0] == char(23))
+    if (byPacket[0] == unsigned char(23))
         return true;
     else
         return false;
 }
 
 // processData will process the received valid data
-void fnProcessData(char cPacket[])
+void fnProcessData(unsigned char byPacket[])
 {
     for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
     {
-        //check if current char being printed is an ETX
-        if (cPacket[i] == char(3))
+        //check if current unsigned char being printed is an ETX
+        if (byPacket[i] == unsigned char(3))
             return;
         // if not ETX then print
-        cout << cPacket[i];
+        cout << byPacket[i];
     }
 }
 
-void fnSendData(char cPacket[], HANDLE hCommPort)
+void fnSendData(unsigned char byPacket[], HANDLE hCommPort)
 {
     DWORD dwBytesWritten;
-    WriteFile(hCommPort, cPacket, PACKET_SIZE, &dwBytesWritten, NULL);
+    WriteFile(hCommPort, byPacket, PACKET_SIZE, &dwBytesWritten, NULL);
+}
+
+void fnSendData(unsigned char byControlChar, HANDLE hCommPort)
+{
+    DWORD dwBytesWritten;
+    WriteFile(hCommPort, byControlChar, 1, &dwBytesWritten, NULL);
 }
 
 //int main(void)

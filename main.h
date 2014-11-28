@@ -29,3 +29,9 @@
 
 /** menu item for opening the serial port configuration dialog */
 #define IDM_CONFIGURE_PORT      114
+
+/** send button id */
+#define IDC_MAIN_BUTTON         115
+
+/** Edit box identifier */
+#define IDC_MAIN_EDIT           116
