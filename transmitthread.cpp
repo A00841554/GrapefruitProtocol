@@ -39,6 +39,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
         pTransmit->bStopped = true;
     else 
     {
+        pTransmit->pReceive->bRequestStop = true;
         pTransmit->bActive = true;
         fnTransmitActive(pTransmit);
 
@@ -62,13 +63,11 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 	
 	if(pTransmit->pReceive->bRVI)
 	{
-		//TODO
 		fnSendData(RVI, (*pTransmit->pHCommPort));
 		pTransmit->pReceive->bRVI = false;
 	}
 	else
 	{
-		//TODO
 		fnSendData(ENQ, (*pTransmit->pHCommPort));
 	}
 
