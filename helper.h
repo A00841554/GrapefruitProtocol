@@ -1,28 +1,18 @@
-const int headerSize = 2;
-const int dataSize = 1018;
-const int validationSize = 4; //32 bits
-const int packetSize = headerSize + dataSize + validationSize;
+#ifndef _HELPER_H_
+#define _HELPER_H_
 
-struct st_transmit {
-    bool request_stop;  // request to stop transmit thread
-    bool stopped;       // flag if transmit thread is stopped
-    bool active;        // flag if transmit state is active
+#include "controlthread.h"
 
-    bool reset;         // flag if transmit state should be reset
-    bool SYN1;          // flag if current data is SYN1
-};
+const int HEADER_SIZE = 2;
+const int DATA_SIZE = 1018;
+const int VALIDTION_SIZE = 4; //32 bits
+const int PACKET_SIZE = HEADER_SIZE + DATA_SIZE + VALIDTION_SIZE;
 
-struct st_receive {
-    bool request_stop;  // request to stop transmit thread
-    bool stopped;       // flag if transmit thread is stopped
-    bool active;        // flag if transmit state is active
+char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT);
+bool fnCheckDuplicate (char cPacket[], ReceiveArgs &receive);
+bool fnIsEOT( char cPacket[] );
+bool fnIsETB( char cPacket[] );
+void fnProcessData(char cPacket[]);
+void fnSendData(char cPacket[], std::ofstream& commPort);
 
-    bool reset;         // flag if transmit state should be reset
-    bool SYN1;          // flag if current data is SYN1
-};
-
-char* packetizeData();
-bool checkDuplicate (char packet[], st_receive receive);
-bool fnIsEOT( char packet[] );
-void processData(char packet[]);
-void sendData(char packet[], std::ofstream& commPort);
+#endif

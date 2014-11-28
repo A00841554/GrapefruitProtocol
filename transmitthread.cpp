@@ -56,7 +56,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     DWORD dwBytesRead;
     short nPacketsSent;
     short nPacketsMiss;
-    char pSCurrPacket[packetSize];
+    char pSCurrPacket[PACKET_SIZE];
 
     pTransmit->pReceive->bRequestStop = true;
 	

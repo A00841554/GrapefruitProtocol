@@ -4,13 +4,8 @@ packetizeData------ DONE !! ---> need some final changes (buffer)
 checkDuplicate----- DONE !!
 processData-------- DONE !!
 isEOT-------------- DONE !!
-sendData----------- NOT DONE YET !!
+sendData----------- DONE !!
 CRC---------------- NOT DONE YET !!
-*//*
-const int headerSize = 2;
-const int dataSize = 1018;
-const int validationSize = 4; //32 bits
-const int packetSize = headerSize + dataSize + validationSize;
 */
 #include <fstream>
 #include <iostream>
@@ -21,23 +16,23 @@ const int packetSize = headerSize + dataSize + validationSize;
 using namespace std;
 
 // Packetizes the data
-//char* packetizeData(st_transmit &transmit, bool forceEOT) { //forceEOT = is eot needed to be put here
-char* packetizeData() { 
-    char* packet = new char[packetSize];
-    char currData[dataSize] = "";
+char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT) 
+{ //forceEOT = is eot needed to be put here
+    char* cPacket = new char[PACKET_SIZE];
+    char cCurrData[DATA_SIZE] = "";
 /*
     currData = cut up to the first 1018 Bytes from data ---->> not possible yet, no buffer
     update value of Pointer to data
 */
-    char header[headerSize];
+    char cHeader[HEADER_SIZE];
   
-    if (true)//(forceEOT)  // OR PACKET IS NOT FULL ----> Implement later
+    if (bForceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
-        header[0] = 'F';//testing only   real one-->//char(4);    // EOT
+        cHeader[0] = char(4);    // EOT
     }
      else 
     {
-        header[0] = char(23);    // ETB
+        cHeader[0] = char(23);    // ETB
     }
 
     /*
@@ -48,27 +43,31 @@ char* packetizeData() {
         Add ETB to header
     */
 
-    if (true){//transmit.SYN1) {
-        header[1] = char(18);
-        header[1] = 'U'; // just testing
-        //transmit.SYN1 = false;
-    } else {
-        header[1] = char(19);
-        //transmit.SYN1 = true;
+    if (transmit.bSYN1) 
+    {
+        cHeader[1] = char(18);
+        transmit.bSYN1 = false;
+    } 
+    else 
+    {
+        cHeader[1] = char(19);
+        transmit.bSYN1 = true;
     }
 /*
-    if(transmit.SYN1) {
-        Append SYN1 to header
-        Set transmit.SYN1 = false
+    if(transmit.bSYN1) {
+        Append bSYN1 to header
+        Set transmit.bSYN1 = false
     } else {
-        Append SYN2 to header
-        Set transmit.SYN1 = true
+        Append bSYN2 to header
+        Set transmit.bSYN1 = true
     }
 
     */
-    for (int i = 0; i < dataSize; i++) {
-        if (currData[i] == char(0)) {
-            currData[i] = char(3); //padding with ETX characters
+    for (int i = 0; i < iDataSize; i++) 
+    {
+        if (cCurrData[i] == char(0)) 
+        {  // if null
+            cCurrData[i] = char(3);     //padding with ETX characters
         }  
     }
        
@@ -77,86 +76,77 @@ char* packetizeData() {
         Add ETX and padding to the end of currData to complete 1018 Bytes
     */
 
-    char theCRC[validationSize];
+    char cTheCRC[iValidationSize];
     /*
     Get CRC value by calling CRC(currData)
     */
         
     //group up all the pieces to create a packet 
-    for (int h = 0; h < headerSize;h++)
-        packet[h] = header[h];
+    for (int h = 0; h < iHeaderSize;h++)
+        cPacket[h] = cHeader[h];
         
-    for (int d = 0; d < dataSize;d++)
-        packet[d + headerSize] = currData[d];
+    for (int d = 0; d < iDataSize;d++)
+        cPacket[d + iHeaderSize] = cCurrData[d];
 
-    for (int v = 0; v < validationSize; v++)
-        packet[v + headerSize + dataSize] = theCRC[v];
+    for (int v = 0; v < iValidationSize; v++)
+        cPacket[v + iHeaderSize + iDataSize] = cTheCRC[v];
       
-    return packet;
+    return cPacket;
 
 } // End of packetizeData
 
-bool checkDuplicate (char packet[], st_receive receive) 
+bool checkDuplicate (char cPacket[], ReceiveArgs &receive) 
 {
-    //if both are SYN1 (dc2)
-    if (packet[1] == char(18) && receive.SYN1)
+    //if both are bSYN1 (dc2)
+    if (cPacket[1] == char(18) && receive.bSYN1)
         return true;
-    //if both are SYN2 (dc3)
-    if ( packet[1] == char(19) && !receive.SYN1 )
+    //if both are bSYN2 (dc3)
+    if ( cPacket[1] == char(19) && !receive.bSYN1 )
         return true;
 
     //if its not a repeated packet
-    receive.SYN1 = !receive.SYN1;
+    receive.bSYN1 = !receive.bSYN1;
     return false;
 }
 
 // Check if data is EOT
-bool fnIsEOT( char packet[] )
+bool fbIsEOT( char cPacket[] )
 {
-    if (packet[0] == char(4))
+    if (cPacket[0] == char(4))
         return true;
     else 
         return false;
 }
 
+// Check if data is ETB
+bool fnIsETB( char cPacket[] )
+{
+    if (cPacket[0] == char(23))
+        return true;
+    else 
+        return false;
+}
 
 // processData will process the received valid data
-void processData(char packet[]) 
+void fnProcessData(char cPacket[]) 
 {
-    for (int i = headerSize; i < (headerSize + dataSize); i++)
+    for (int i = iHeaderSize; i < (iHeaderSize + iDataSize); i++)
     {
         //check if current char being printed is an ETX
-        if (packet[i] == char(3))
+        if (cPacket[i] == char(3))
             return;
         // if not ETX then print
-        cout << packet[i];
+        cout << cPacket[i];
     }
 }
 
-//THIS IS NOT FIXED YET !! 
-// -------------------------------------We need to use HANDLE instead of ofstream&
-void sendData(char packet[], std::ofstream& commPort) {
-    for (int i = 0; i < packetSize; i++)
-       commPort << packet[i];
+void fnSendData(char cPacket[], HANDLE hCommPort) 
+{
+    DWORD dwBytesWritten;
+    WriteFile(hCommPort, cPacket, iPacketSize, &dwBytesWritten, NULL);
 }
- 
-//int main () {
-//    char str1[packetSize];
-//    strcpy_s(str1, packetizeData());
-    
-//    //isctrl(the character
-//    cout << "The full packet ---> '"; 
-    
-//    for (int i= 0 ; i < packetSize;i++)
-//        printf("%c",str1[i]);
-        
-//    cout << "'\nThe processed data:  '";
-//    processData(str1);
-//    cout << "'";
-    
-//    //testing purposes
-//    ofstream myfile ("example.txt");
-//    sendData(str1, myfile);
-        
+
+int main(void)
+{
 //    return 0;
 //}
