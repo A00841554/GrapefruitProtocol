@@ -8,6 +8,7 @@ sendData----------- DONE !!
 CRC---------------- NOT DONE YET !!
 */
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <cstring>
 #include <stdlib.h>
@@ -163,14 +164,34 @@ void fnProcessData(char byPacket[])
 
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
+    OutputDebugString("TransmitThread: send packet");
+
+    OVERLAPPED ov;
     DWORD dwBytesWritten;
+
+    memset(&ov, 0, sizeof(OVERLAPPED));
+    ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
     WriteFile(hCommPort, byPacket, PACKET_SIZE, &dwBytesWritten, NULL);
+
+    WaitForSingleObject(ov.hEvent, INFINITE);
 }
 
 void fnSendData(char byControlChar, HANDLE hCommPort)
 {
+    std::stringstream sstm;
+    sstm << "TransmitThread: send " << int(byControlChar) << endl;
+    OutputDebugString(sstm.str().c_str());
+
+    OVERLAPPED ov;
     DWORD dwBytesWritten;
-    WriteFile(hCommPort, &byControlChar, 1, &dwBytesWritten, NULL);
+
+    memset(&ov, 0, sizeof(OVERLAPPED));
+    ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+    WriteFile(hCommPort, &byControlChar, 1, &dwBytesWritten, &ov);
+
+    WaitForSingleObject(ov.hEvent, INFINITE);
 }
 
 //int main(void)
