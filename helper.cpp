@@ -19,65 +19,48 @@ using namespace std;
 // Packetizes the data
 char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 { //forceEOT = is eot needed to be put here
-    char* byPacket = new char[PACKET_SIZE];
-    char byCurrData[DATA_SIZE] = "";
-/*
-    currData = cut up to the first 1018 Bytes from data ---->> not possible yet, no buffer
-    update value of Pointer to data
-*/
-    char byHeader[HEADER_SIZE];
+    // allocate memory for packet
+    char* byPacket   = new char[PACKET_SIZE];
+    char* byHeader   = byPacket;
+    char* byCurrData = byHeader + HEADER_SIZE;
+    char* byTheCRC   = byCurrData + DATA_SIZE;
+    TransmitBuffer* pTransmitBuffer = transmit.pTransmitBuffer;
 
-    if (bForceEOT)  // OR PACKET IS NOT FULL ----> Implement later
+    // fill packet with data (and or padding)
+    for (int i = 0; i < DATA_SIZE; i++)
     {
-        byHeader[0] = char(4);    // EOT
-    }
-     else
-    {
-        byHeader[0] = char(23);    // ETB
+        if (!pTransmitBuffer->empty())
+        {
+            char c = transmit.pTransmitBuffer->front();
+            transmit.pTransmitBuffer->erase(transmit.pTransmitBuffer->begin());
+            byCurrData[i] = c;
+        }
+        else
+        {
+            byCurrData[i] = ETX;
+        }
     }
 
-    /*
-    initialize header
-    if(updated data size == 0 of forceEOT)
-        Add EOT to header
+    // build packet header
+    if (bForceEOT || pTransmitBuffer->empty())
+    {
+        byHeader[0] = EOT;
+    }
     else
-        Add ETB to header
-    */
+    {
+        byHeader[0] = ETB;
+    }
 
     if (transmit.bSYN1)
     {
-        byHeader[1] = char(18);
+        byHeader[1] = SYN1;
         transmit.bSYN1 = false;
     }
     else
     {
-        byHeader[1] = char(19);
+        byHeader[1] = SYN2;
         transmit.bSYN1 = true;
     }
-/*
-    if(transmit.bSYN1) {
-        Append bSYN1 to header
-        Set transmit.bSYN1 = false
-    } else {
-        Append bSYN2 to header
-        Set transmit.bSYN1 = true
-    }
-
-    */
-    for (int i = 0; i < DATA_SIZE; i++)
-    {
-        if (byCurrData[i] == char(0))
-        {  // if null
-            byCurrData[i] = char(3);     //padding with ETX characters
-        }
-    }
-
-    /*
-    if(currData < 1018 Bytes)
-        Add ETX and padding to the end of currData to complete 1018 Bytes
-    */
-
-    char byTheCRC[VALIDTION_SIZE];
     /*
     Get CRC value by calling CRC(currData)
     */
@@ -99,10 +82,10 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
 {
     //if both are bSYN1 (dc2)
-    if (byPacket[1] == char(18) && receive.bSYN1)
+    if (byPacket[1] == SYN1 && receive.bSYN1)
         return true;
     //if both are bSYN2 (dc3)
-    if (byPacket[1] == char(19) && !receive.bSYN1 )
+    if (byPacket[1] == SYN2 && !receive.bSYN1 )
         return true;
 
     //if its not a repeated packet
@@ -113,7 +96,7 @@ bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
 // Check if data is EOT
 bool fnIsEOT( char byPacket[] )
 {
-    if (byPacket[0] == char(4))
+    if (byPacket[0] == EOT)
         return true;
     else
         return false;
@@ -122,7 +105,7 @@ bool fnIsEOT( char byPacket[] )
 // Check if data is ETB
 bool fnIsETB( char byPacket[] )
 {
-    if (byPacket[0] == char(23))
+    if (byPacket[0] == ETB)
         return true;
     else
         return false;
@@ -134,7 +117,7 @@ void fnProcessData(char byPacket[])
     for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
     {
         //check if current char being printed is an ETX
-        if (byPacket[i] == char(3))
+        if (byPacket[i] == ETX)
             return;
         // if not ETX then print
         cout << byPacket[i];
@@ -151,9 +134,10 @@ void fnSendData(char byPacket[], HANDLE hCommPort)
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    WriteFile(hCommPort, byPacket, PACKET_SIZE, &dwBytesWritten, NULL);
+    WriteFile(hCommPort, byPacket, PACKET_SIZE, &dwBytesWritten, &ov);
 
     WaitForSingleObject(ov.hEvent, INFINITE);
+	CloseHandle(ov.hEvent);
 }
 
 void fnSendData(char byControlChar, HANDLE hCommPort)
@@ -171,6 +155,7 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
     WriteFile(hCommPort, &byControlChar, 1, &dwBytesWritten, &ov);
 
     WaitForSingleObject(ov.hEvent, INFINITE);
+	CloseHandle(ov.hEvent);
 }
 
 /**
@@ -189,10 +174,10 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
  *   ReadDataResult::FAIL if the read operation, ReadDataResult::ERROR if an
  *   error occurred during the reading fails
  */
-int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, int timeout)
+int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
 {
     std::stringstream sstm;
-    sstm << "helper: reading";
+    sstm << "helper: reading\n";
     OutputDebugString(sstm.str().c_str());
 
     OVERLAPPED ov;
@@ -208,14 +193,27 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, int timeout)
 
         case WAIT_OBJECT_0:
         if (!GetOverlappedResult(hCommPort, &ov, &dwRead, true))
+		{
+		    DWORD dwErr = GetLastError();
+            char strErrorBuffer[MAX_PATH+1] = {0};
+            sprintf_s(strErrorBuffer,MAX_PATH,"fnReadData: Error: 0x%x\n",dwErr);
+            OutputDebugString(strErrorBuffer);
             return ReadDataResult::ERR;
+		}
         else
+		{
+		    CloseHandle(ov.hEvent);
             return ReadDataResult::SUCCESS;
+		}
 
         case WAIT_TIMEOUT:
+		CancelIoEx(hCommPort, &ov);
+		CloseHandle(ov.hEvent);
         return ReadDataResult::TIMEDOUT;
 
         default:
+		CancelIoEx(hCommPort, &ov);
+		CloseHandle(ov.hEvent);
         return ReadDataResult::FAIL;
     }
 }

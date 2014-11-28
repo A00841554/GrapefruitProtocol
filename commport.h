@@ -40,6 +40,7 @@
  */
 #include <windows.h>
 #include <sstream>
+#include "typedefs.h"
 
 
 
@@ -162,9 +163,9 @@ class CommPort
         int fnConfigurePort(HWND);
         int fnOpen(void);
         int fnClose(void);
-        OVERLAPPED* fnGetOverlapped(void);
+        int fnSend(char*, DWORD);
+		TransmitBuffer* fnGetTransmitBuffer(void);
         HANDLE* fnGetCommHandle(void);
-        void fnSend(char*, DWORD);
 
     private:
         /** status of serial port; it can be OPENED, or CLLOSED */
@@ -185,8 +186,8 @@ class CommPort
         /** used to configure the serial port */
         COMMCONFIG mCommConfig;
 
-        /** overlapped structure used by the serialPort */
-        OVERLAPPED mOverlapped;
+		/** vector of characters to send */
+		TransmitBuffer transmitBuffer;
 
         /**
          * structure containing timeout variables for reading and writing to and

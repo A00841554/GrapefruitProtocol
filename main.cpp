@@ -36,6 +36,7 @@
 #include <iostream>
 #include "main.h"
 #include "application.h"
+#include "protocolparams.h"
 
 
 
@@ -157,7 +158,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
 
         HWND hwnd = CreateWindow(NAME, NAME, WS_OVERLAPPEDWINDOW, 10, 10,
                 815, 700, NULL, NULL, hInst, NULL);
-        
+
 
         // Create panels
         HDC hdcMain = GetDC(hwnd);
@@ -199,7 +200,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             NULL,                                 // menu [optional]
             GetModuleHandle(NULL),                            // instance handle
             NULL);                                // CreateStruct [optional]
-        
+
         // Create an Stats box
         HWND hwndStats = CreateWindowEx (WS_EX_CLIENTEDGE,
             "EDIT",                            // String or Class name from the Register class
@@ -261,12 +262,12 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             20,
             rect.bottom - 60,
             leftWidth + rightWidth + 15 + 15 + 130,
-            40,              
+            40,
             hwnd,              // handle to parent window
             NULL,       // child window identifier
             GetModuleHandle(NULL),                   // handle to application instance
-            NULL);  
-        
+            NULL);
+
         // create objects
         oTerminal = new Terminal(&hwnd, &hwndLeft, &hwndRight, &hwndStatus);
         oCommPort = new CommPort(DEFAULT_PORT_NAME);
@@ -344,18 +345,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 
         }
         break;
-        
+
         ///////////////////////////////
         // Process menu bar messages //
         ///////////////////////////////
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
+                /////////////////////
+                // hit send button //
+                /////////////////////
                 case IDC_MAIN_BUTTON:
                 {
-                    MessageBox(NULL, "HIT ENTER", "INFO", NULL);
-                            break;
+					char string[5000];
+					GetWindowText(hwndEdit, string, 5000);
+					(*oApp).fnSend(string, strlen(string));
+                    break;
                 }
+
                 ///////////////////
                 // set port name //
                 ///////////////////

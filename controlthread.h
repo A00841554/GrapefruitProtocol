@@ -3,10 +3,10 @@
 
 #include <windows.h>
 #include <vector>
+#include "typedefs.h"
 
 struct TransmitArgs;
 struct ReceiveArgs;
-typedef std::vector<char> TransmitBuffer;
 
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
@@ -21,8 +21,6 @@ struct TransmitArgs
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
     
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
-
-    OVERLAPPED* pOverlapped;// pointer to overlapped
     HANDLE* pHCommPort;    // reference to serial port
 };
 
@@ -37,8 +35,6 @@ struct ReceiveArgs
     BOOL bSYN1;         // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
-    
-    OVERLAPPED* pOverlapped;// pointer to overlapped
     HANDLE* pHCommPort;    // reference to serial port
 };
 
@@ -49,14 +45,10 @@ struct ControlArgs
     BOOL bStopped;      // true if thread is stopped; false otherwise
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
-
-    OVERLAPPED* pOverlapped;// pointer to overlapped
     HANDLE* pHCommPort;     // reference to serial port
 };
 
 DWORD WINAPI fnControl(LPVOID args);
-
-const int CONTROL_THREAD_SLEEP_INTERVAL = 1000;
 
 /*
 #include <iostream>
