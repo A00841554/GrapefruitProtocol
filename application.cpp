@@ -348,7 +348,7 @@ void Application::fnConfigurePort(void)
  *
  * @param        c   character to send out the CommPort
  */
-void Application::fnSend(char c)
+/*void Application::fnSend(char c)
 {
 
     // create a string stream that we will use to build a string, and print to
@@ -389,7 +389,7 @@ void Application::fnSend(char c)
 
     // print whatever was in the string stream to the terminal
     (*mPtrTerminal).fnPrint(mStringStream.str());
-}
+}*/
 
 /**
  * prints a nice helpful help message to the Terminal
@@ -443,7 +443,6 @@ void Application::fnHelp(void)
     // print whatever was in the string stream to the terminal
     (*mPtrTerminal).fnClearScreen();
     (*mPtrTerminal).fnPrint(mStringStream.str());
-    (*mPtrTerminal).fnSetClearScreenBeforeNextPrint();
 }
 
 /**
@@ -491,7 +490,7 @@ void Application::fnOnReceive(char c)
             // backspace key; remove character
             case 8:
             {
-                (*mPtrTerminal).fnBackspace();
+                //(*mPtrTerminal).fnBackspace();
                 break;
             }
 
@@ -509,16 +508,56 @@ void Application::fnOnReceive(char c)
     }
 }
 
-void Application::fnStartControlThread(void)
+/**
+ * starts the control thread
+ *
+ * @class        Application
+ *
+ * @method       fnStartControlThread
+ *
+ * @date         2014-11-23
+ *
+ * @revisions    none
+ *
+ * @designer     EricTsang
+ *
+ * @programmer   EricTsang
+ *
+ * @notes
+ *
+ * starts the control thread. returns true if the control thread was started;
+ *   false otherwise.
+ *
+ * @signature    bool Application::fnStartControlThread(void)
+ */
+bool Application::fnStartControlThread(void)
 {
     if (controlArgs.bStopped) {
         controlArgs.bRequestStop = false;
         controlArgs.bStopped = false;
+        // todo: change the nullptr to an actual transmit buffer
+        controlArgs.pTransmitBuffer = new std::vector<unsigned char>();
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pTransmitBuffer->push_back('a');
+        controlArgs.pOverlapped = mPtrCommPort->fnGetOverlapped();
+        controlArgs.pHCommPort = mPtrCommPort->fnGetCommHandle();
 
         DWORD threadId;
 
         CreateThread(NULL, 0, fnControl, &controlArgs, 0, &threadId);
     }
+
+    return !controlArgs.bStopped;
 }
 
 void Application::fnStopControlThread(void)
