@@ -16,7 +16,7 @@ CRC---------------- NOT DONE YET !!
 using namespace std;
 
 // Packetizes the data
-char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT) 
+char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 { //forceEOT = is eot needed to be put here
     char* cPacket = new char[PACKET_SIZE];
     char cCurrData[DATA_SIZE] = "";
@@ -25,12 +25,12 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     update value of Pointer to data
 */
     char cHeader[HEADER_SIZE];
-  
+
     if (bForceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
         cHeader[0] = char(4);    // EOT
     }
-     else 
+     else
     {
         cHeader[0] = char(23);    // ETB
     }
@@ -43,12 +43,12 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
         Add ETB to header
     */
 
-    if (transmit.bSYN1) 
+    if (transmit.bSYN1)
     {
         cHeader[1] = char(18);
         transmit.bSYN1 = false;
-    } 
-    else 
+    }
+    else
     {
         cHeader[1] = char(19);
         transmit.bSYN1 = true;
@@ -63,39 +63,39 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     }
 
     */
-    for (int i = 0; i < iDataSize; i++) 
+    for (int i = 0; i < DATA_SIZE; i++)
     {
-        if (cCurrData[i] == char(0)) 
+        if (cCurrData[i] == char(0))
         {  // if null
             cCurrData[i] = char(3);     //padding with ETX characters
-        }  
+        }
     }
-       
+
     /*
     if(currData < 1018 Bytes)
         Add ETX and padding to the end of currData to complete 1018 Bytes
     */
 
-    char cTheCRC[iValidationSize];
+    char cTheCRC[VALIDTION_SIZE];
     /*
     Get CRC value by calling CRC(currData)
     */
-        
-    //group up all the pieces to create a packet 
-    for (int h = 0; h < iHeaderSize;h++)
-        cPacket[h] = cHeader[h];
-        
-    for (int d = 0; d < iDataSize;d++)
-        cPacket[d + iHeaderSize] = cCurrData[d];
 
-    for (int v = 0; v < iValidationSize; v++)
-        cPacket[v + iHeaderSize + iDataSize] = cTheCRC[v];
-      
+    //group up all the pieces to create a packet
+    for (int h = 0; h < HEADER_SIZE;h++)
+        cPacket[h] = cHeader[h];
+
+    for (int d = 0; d < DATA_SIZE;d++)
+        cPacket[d + HEADER_SIZE] = cCurrData[d];
+
+    for (int v = 0; v < VALIDTION_SIZE; v++)
+        cPacket[v + HEADER_SIZE + DATA_SIZE] = cTheCRC[v];
+
     return cPacket;
 
 } // End of packetizeData
 
-bool checkDuplicate (char cPacket[], ReceiveArgs &receive) 
+bool checkDuplicate (char cPacket[], ReceiveArgs &receive)
 {
     //if both are bSYN1 (dc2)
     if (cPacket[1] == char(18) && receive.bSYN1)
@@ -110,11 +110,11 @@ bool checkDuplicate (char cPacket[], ReceiveArgs &receive)
 }
 
 // Check if data is EOT
-bool fbIsEOT( char cPacket[] )
+bool fnIsEOT( char cPacket[] )
 {
     if (cPacket[0] == char(4))
         return true;
-    else 
+    else
         return false;
 }
 
@@ -123,14 +123,14 @@ bool fnIsETB( char cPacket[] )
 {
     if (cPacket[0] == char(23))
         return true;
-    else 
+    else
         return false;
 }
 
 // processData will process the received valid data
-void fnProcessData(char cPacket[]) 
+void fnProcessData(char cPacket[])
 {
-    for (int i = iHeaderSize; i < (iHeaderSize + iDataSize); i++)
+    for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
     {
         //check if current char being printed is an ETX
         if (cPacket[i] == char(3))
@@ -140,13 +140,13 @@ void fnProcessData(char cPacket[])
     }
 }
 
-void fnSendData(char cPacket[], HANDLE hCommPort) 
+void fnSendData(char cPacket[], HANDLE hCommPort)
 {
     DWORD dwBytesWritten;
-    WriteFile(hCommPort, cPacket, iPacketSize, &dwBytesWritten, NULL);
+    WriteFile(hCommPort, cPacket, PACKET_SIZE, &dwBytesWritten, NULL);
 }
 
-int main(void)
-{
+//int main(void)
+//{
 //    return 0;
 //}

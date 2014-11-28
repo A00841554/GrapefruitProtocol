@@ -63,13 +63,13 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 	if(pTransmit->pReceive->bRVI)
 	{
 		//TODO
-		//fnSendData(RVI);
+		//fnSendData(RVI, (*pTransmit->pHCommPort));
 		pTransmit->pReceive->bRVI = false;
 	}
 	else
 	{
 		//TODO
-		//fnSendData(ENQ);
+		//fnSendData(ENQ, (*pTransmit->pHCommPort));
 	}
 
     while(byReceivedChar != ACK)
@@ -104,8 +104,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             ReadFile(*(pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
             if ((dwBytesRead == 0 && nPacketsMiss >= MAX_MISS) ||
                 (byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
-                //TODO
-                // implement fnIsEOT
+
                 (byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
                 pTransmit->bActive = false;
@@ -118,9 +117,8 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 nPacketsMiss++;
                 continue;
             }
-            //TODO
-            // implement fnIsETB
-            else if (byReceivedChar == ACK && !fnIsEOT(pSCurrPacket))
+
+            else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
             {
                 break;
             }
