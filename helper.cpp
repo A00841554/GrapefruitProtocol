@@ -6,23 +6,19 @@ processData-------- DONE !!
 isEOT-------------- DONE !!
 sendData----------- NOT DONE YET !!
 CRC---------------- NOT DONE YET !!
-*//*
-const int headerSize = 2;
-const int dataSize = 1018;
-const int validationSize = 4; //32 bits
-const int packetSize = headerSize + dataSize + validationSize;
 */
 #include <fstream>
 #include <iostream>
 #include <cstring>
 #include <stdlib.h>
 #include "helper.h"
+#include "controlthread.h"
 
 using namespace std;
 
 // Packetizes the data
-//char* packetizeData(st_transmit &transmit, bool forceEOT) { //forceEOT = is eot needed to be put here
-char* fnPacketizeData() { 
+char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT) 
+{ //forceEOT = is eot needed to be put here
     char* cPacket = new char[iPacketSize];
     char cCurrData[iDataSize] = "";
 /*
@@ -31,9 +27,9 @@ char* fnPacketizeData() {
 */
     char cHeader[iHeaderSize];
   
-    if (true)//(forceEOT)  // OR PACKET IS NOT FULL ----> Implement later
+    if (forceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
-        cHeader[0] = 'F';//testing only   real one-->//char(4);    // EOT
+        cHeader[0] = char(4);    // EOT
     }
      else 
     {
@@ -48,27 +44,31 @@ char* fnPacketizeData() {
         Add ETB to header
     */
 
-    if (true){//transmit.SYN1) {
+    if (transmit.bSYN1) 
+    {
         cHeader[1] = char(18);
-        cHeader[1] = 'U'; // just testing
-        //transmit.SYN1 = false;
-    } else {
+        transmit.bSYN1 = false;
+    } 
+    else 
+    {
         cHeader[1] = char(19);
-        //transmit.SYN1 = true;
+        transmit.bSYN1 = true;
     }
 /*
-    if(transmit.SYN1) {
-        Append SYN1 to header
-        Set transmit.SYN1 = false
+    if(transmit.bSYN1) {
+        Append bSYN1 to header
+        Set transmit.bSYN1 = false
     } else {
-        Append SYN2 to header
-        Set transmit.SYN1 = true
+        Append bSYN2 to header
+        Set transmit.bSYN1 = true
     }
 
     */
-    for (int i = 0; i < iDataSize; i++) {
-        if (cCurrData[i] == char(0)) {
-            cCurrData[i] = char(3); //padding with ETX characters
+    for (int i = 0; i < iDataSize; i++) 
+    {
+        if (cCurrData[i] == char(0)) 
+        {  // if null
+            cCurrData[i] = char(3);     //padding with ETX characters
         }  
     }
        
@@ -83,10 +83,10 @@ char* fnPacketizeData() {
     */
         
     //group up all the pieces to create a packet 
-    for (int h = 0; h < headerSize;h++)
+    for (int h = 0; h < iHeaderSize;h++)
         cPacket[h] = cHeader[h];
         
-    for (int d = 0; d < dataSize;d++)
+    for (int d = 0; d < iDataSize;d++)
         cPacket[d + iHeaderSize] = cCurrData[d];
 
     for (int v = 0; v < iValidationSize; v++)
@@ -96,38 +96,37 @@ char* fnPacketizeData() {
 
 } // End of packetizeData
 
-bool checkDuplicate (char cPacket[], st_receive receive) 
+bool checkDuplicate (char cPacket[], ReceiveArgs &receive) 
 {
-    //if both are SYN1 (dc2)
-    if (cPacket[1] == char(18) && receive.SYN1)
+    //if both are bSYN1 (dc2)
+    if (cPacket[1] == char(18) && receive.bSYN1)
         return true;
-    //if both are SYN2 (dc3)
-    if ( cPacket[1] == char(19) && !receive.SYN1 )
+    //if both are bSYN2 (dc3)
+    if ( cPacket[1] == char(19) && !receive.bSYN1 )
         return true;
 
     //if its not a repeated packet
-    receive.SYN1 = !receive.SYN1;
+    receive.bSYN1 = !receive.bSYN1;
     return false;
 }
 
 // Check if data is EOT
-bool isEOT( char packet[] )
+bool fbIsEOT( char cPacket[] )
 {
-    if (packet[0] == char(4))
+    if (cPacket[0] == char(4))
         return true;
     else 
         return false;
 }
 
 // Check if data is ETB
-bool fnIsEOT( char cPacket[] )
+bool fnIsETB( char cPacket[] )
 {
     if (cPacket[0] == char(23))
         return true;
     else 
         return false;
 }
-
 
 // processData will process the received valid data
 void fnProcessData(char cPacket[]) 
@@ -143,29 +142,9 @@ void fnProcessData(char cPacket[])
 }
 
 //THIS IS NOT FIXED YET !! 
-// -------------------------------------We need to use HANDLE instead of ofstream&
-void fnSendData(char cPacket[], std::ofstream& commPort) {
+// -------------------We need to use HANDLE instead of ofstream&
+void fnSendData(char cPacket[], std::ofstream& commPort) 
+{
     for (int i = 0; i < iPacketSize; i++)
        commPort << cPacket[i];
-}
- 
-int main () {
-    char str1[iPacketSize];
-    strcpy(str1, packetizeData());
-    
-    //isctrl(the character
-    cout << "The full packet ---> '"; 
-    
-    for (int i= 0 ; i < iPacketSize;i++)
-        printf("%c",str1[i]);
-        
-    cout << "'\nThe processed data:  '";
-    processData(str1);
-    cout << "'";
-    
-    //testing purposes
-    ofstream myfile ("example.txt");
-    sendData(str1, myfile);
-        
-    return 0;
 }
