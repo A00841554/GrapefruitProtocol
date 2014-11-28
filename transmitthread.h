@@ -8,6 +8,7 @@
 #define ACK 6
 #define NAK 21
 #define RVI 17
+#define ENQ 5
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>

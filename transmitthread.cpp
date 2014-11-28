@@ -52,7 +52,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     OutputDebugString("TransmitThread: Active\n");
 
 	TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
-	unsigned char byReceivedChar = 0;
+	char byReceivedChar = 0;
     DWORD dwBytesRead;
     short nPacketsSent;
     short nPacketsMiss;
@@ -99,12 +99,11 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
         while(true)
         {
             //TODO
-            fnSendData(pSCurrPacket);
+            fnSendData(pSCurrPacket, *(pTransmit->pHCommPort));
             dwBytesRead = 0;
             ReadFile(*(pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
             if ((dwBytesRead == 0 && nPacketsMiss >= MAX_MISS) ||
                 (byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
-
                 (byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
                 pTransmit->bActive = false;
@@ -120,6 +119,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
             else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
             {
+                delete pSCurrPacket;
                 break;
             }
             else if (byReceivedChar == RVI)

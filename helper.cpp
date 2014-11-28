@@ -16,23 +16,23 @@ CRC---------------- NOT DONE YET !!
 using namespace std;
 
 // Packetizes the data
-unsigned char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
+char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 { //forceEOT = is eot needed to be put here
-    unsigned char* byPacket = new unsigned char[PACKET_SIZE];
-    unsigned char byCurrData[DATA_SIZE] = "";
+    char* byPacket = new char[PACKET_SIZE];
+    char byCurrData[DATA_SIZE] = "";
 /*
     currData = cut up to the first 1018 Bytes from data ---->> not possible yet, no buffer
     update value of Pointer to data
 */
-    unsigned char byHeader[HEADER_SIZE];
+    char byHeader[HEADER_SIZE];
 
     if (bForceEOT)  // OR PACKET IS NOT FULL ----> Implement later
     {
-        byHeader[0] = unsigned char(4);    // EOT
+        byHeader[0] = char(4);    // EOT
     }
      else
     {
-        byHeader[0] = unsigned char(23);    // ETB
+        byHeader[0] = char(23);    // ETB
     }
 
     /*
@@ -45,12 +45,12 @@ unsigned char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 
     if (transmit.bSYN1)
     {
-        byHeader[1] = unsigned char(18);
+        byHeader[1] = char(18);
         transmit.bSYN1 = false;
     }
     else
     {
-        byHeader[1] = unsigned char(19);
+        byHeader[1] = char(19);
         transmit.bSYN1 = true;
     }
 /*
@@ -65,9 +65,9 @@ unsigned char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     */
     for (int i = 0; i < DATA_SIZE; i++)
     {
-        if (byCurrData[i] == unsigned char(0))
+        if (byCurrData[i] == char(0))
         {  // if null
-            byCurrData[i] = unsigned char(3);     //padding with ETX unsigned characters
+            byCurrData[i] = char(3);     //padding with ETX characters
         }
     }
 
@@ -76,7 +76,7 @@ unsigned char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
         Add ETX and padding to the end of currData to complete 1018 Bytes
     */
 
-    unsigned char byTheCRC[VALIDTION_SIZE];
+    char byTheCRC[VALIDTION_SIZE];
     /*
     Get CRC value by calling CRC(currData)
     */
@@ -91,17 +91,17 @@ unsigned char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     for (int v = 0; v < VALIDTION_SIZE; v++)
         byPacket[v + HEADER_SIZE + DATA_SIZE] = byTheCRC[v];
 
-    return cPacket;
+    return byPacket;
 
 } // End of packetizeData
 
-bool checkDuplicate (unsigned char byPacket[], ReceiveArgs &receive)
+bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
 {
     //if both are bSYN1 (dc2)
-    if (byPacket[1] == unsigned char(18) && receive.bSYN1)
+    if (byPacket[1] == char(18) && receive.bSYN1)
         return true;
     //if both are bSYN2 (dc3)
-    if (byPacket[1] == unsigned char(19) && !receive.bSYN1 )
+    if (byPacket[1] == char(19) && !receive.bSYN1 )
         return true;
 
     //if its not a repeated packet
@@ -110,46 +110,46 @@ bool checkDuplicate (unsigned char byPacket[], ReceiveArgs &receive)
 }
 
 // Check if data is EOT
-bool fnIsEOT( unsigned char byPacket[] )
+bool fnIsEOT( char byPacket[] )
 {
-    if (byPacket[0] == unsigned char(4))
+    if (byPacket[0] == char(4))
         return true;
     else
         return false;
 }
 
 // Check if data is ETB
-bool fnIsETB( unsigned char byPacket[] )
+bool fnIsETB( char byPacket[] )
 {
-    if (byPacket[0] == unsigned char(23))
+    if (byPacket[0] == char(23))
         return true;
     else
         return false;
 }
 
 // processData will process the received valid data
-void fnProcessData(unsigned char byPacket[])
+void fnProcessData(char byPacket[])
 {
     for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
     {
-        //check if current unsigned char being printed is an ETX
-        if (byPacket[i] == unsigned char(3))
+        //check if current char being printed is an ETX
+        if (byPacket[i] == char(3))
             return;
         // if not ETX then print
         cout << byPacket[i];
     }
 }
 
-void fnSendData(unsigned char byPacket[], HANDLE hCommPort)
+void fnSendData(char byPacket[], HANDLE hCommPort)
 {
     DWORD dwBytesWritten;
     WriteFile(hCommPort, byPacket, PACKET_SIZE, &dwBytesWritten, NULL);
 }
 
-void fnSendData(unsigned char byControlChar, HANDLE hCommPort)
+void fnSendData(char byControlChar, HANDLE hCommPort)
 {
     DWORD dwBytesWritten;
-    WriteFile(hCommPort, byControlChar, 1, &dwBytesWritten, NULL);
+    WriteFile(hCommPort, &byControlChar, 1, &dwBytesWritten, NULL);
 }
 
 //int main(void)

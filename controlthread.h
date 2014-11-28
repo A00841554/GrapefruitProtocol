@@ -6,7 +6,7 @@
 
 struct TransmitArgs;
 struct ReceiveArgs;
-typedef std::vector<unsigned char> TransmitBuffer;
+typedef std::vector<char> TransmitBuffer;
 
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs

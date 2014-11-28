@@ -543,7 +543,7 @@ bool Application::fnStartControlThread(void)
         controlArgs.bRequestStop = false;
         controlArgs.bStopped = false;
         // todo: change the nullptr to an actual transmit buffer
-        controlArgs.pTransmitBuffer = new std::vector<unsigned char>();
+        controlArgs.pTransmitBuffer = new std::vector<char>();
         controlArgs.pTransmitBuffer->push_back('a');
         controlArgs.pTransmitBuffer->push_back('a');
         controlArgs.pTransmitBuffer->push_back('a');
