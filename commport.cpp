@@ -346,16 +346,6 @@ int CommPort::fnOpen(void)
         return INVALID_OPERATION_FOR_STATE;
     }
 
-    // set up overlapped structure
-    memset(&mOverlapped, 0, sizeof(OVERLAPPED));
-    mOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-    // verify that overlapped was set up correctly; if not, bail out
-    if (mOverlapped.hEvent == NULL)
-    {
-        return FAIL;
-    }
-
     // try to open the port
     mHComm = CreateFile(
             mPortName.c_str(),              // lpFileName
@@ -427,8 +417,7 @@ int CommPort::fnClose(void)
         return INVALID_OPERATION_FOR_STATE;
 
     // try to close the port
-    if (CloseHandle(mHComm)
-            && CloseHandle(mOverlapped.hEvent))
+    if (CloseHandle(mHComm))
     {
         mStatus = Status::CLOSED;    // update status
         return SUCCESS;              // return...
@@ -439,9 +428,9 @@ int CommPort::fnClose(void)
     }
 }
 
-OVERLAPPED* CommPort::fnGetOverlapped(void)
+TransmitBuffer* CommPort::fnGetTransmitBuffer(void)
 {
-    return &mOverlapped;
+    return &transmitBuffer;
 }
 
 HANDLE* CommPort::fnGetCommHandle(void)
@@ -449,36 +438,14 @@ HANDLE* CommPort::fnGetCommHandle(void)
     return &mHComm;
 }
 
-void CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)
+int CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)
 {
-    DWORD dwWritten;
-    BOOL fRes;
+    // verify state; cannot close the port if it's already closed
+    if (mStatus == Status::CLOSED)
+        return INVALID_OPERATION_FOR_STATE;
 
-    // Issue write.
-    if (!WriteFile(mHComm, pBuffer, nBytesToSend, &dwWritten, &mOverlapped))
-    {
-        if (GetLastError() != ERROR_IO_PENDING)
-        {
-             // WriteFile failed, but it isn't delayed. Report error and abort.
-             fRes = FALSE;
-        }
-        else
-        {
-            // Write is pending.
-            if (!GetOverlappedResult(mHComm, &mOverlapped, &dwWritten, TRUE))
-            {
-                fRes = FALSE;
-            }
-            else
-            {
-                // Write operation completed successfully.
-                fRes = TRUE;
-            }
-        }
-    }
-    else
-    {
-        // WriteFile completed immediately.
-        fRes = TRUE;
-    }
+	for (int i = 0; i < nBytesToSend; ++i)
+	{
+        transmitBuffer.push_back(pBuffer[i]);
+	}
 }

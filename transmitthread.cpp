@@ -12,7 +12,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 	
     if(pTransmit->bReset)
     {
-        //Sleep(rand())
+        Sleep(rand() % MAX_RESET_TIMEOUT);
         pTransmit->bReset = false;
     }
 
@@ -42,10 +42,10 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
         pTransmit->pReceive->bRequestStop = true;
         pTransmit->bActive = true;
         fnTransmitActive(pTransmit);
-
-        OutputDebugString("TransmitThread: Stopped\n");
-        return 0;
     }
+
+	OutputDebugString("TransmitThread: Stopped\n");
+	return 0;
 }
 
 DWORD WINAPI fnTransmitActive(LPVOID lpArg)
@@ -74,8 +74,9 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     while(byReceivedChar != ACK)
     {
         dwBytesRead = 0;
-        ReadFile((*pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
-        if (dwBytesRead == 0)
+        //ReadFile((*pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
+        int result = fnReadData(*(pTransmit->pHCommPort), &byReceivedChar, 1, 10000);
+        if (result != ReadDataResult::SUCCESS)
         {
             pTransmit->bActive = false;
             pTransmit->bStopped = true;
@@ -88,8 +89,6 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
     while(true)
     {
-        //TODO
-        // "Add || maybe" - Eric
         pSCurrPacket = fnPacketizeData(*pTransmit, nPacketsSent >= MAX_SENT);
         
         nPacketsMiss = 0;
@@ -100,17 +99,18 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             //TODO
             fnSendData(pSCurrPacket, *(pTransmit->pHCommPort));
             dwBytesRead = 0;
-            ReadFile(*(pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
-            if ((dwBytesRead == 0 && nPacketsMiss >= MAX_MISS) ||
-                (byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
-                (byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
+            // ReadFile(*(pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
+            int result = fnReadData(*(pTransmit->pHCommPort), &byReceivedChar, 1, 10000);
+            if ((result == ReadDataResult::TIMEDOUT && nPacketsMiss >= MAX_MISS) ||
+                (result != ReadDataResult::TIMEDOUT && byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
+                (result != ReadDataResult::TIMEDOUT && byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
                 pTransmit->bActive = false;
                 pTransmit->bStopped = true;
                 pTransmit->bReset = true;
                 return 0;
             }
-            else if ((dwBytesRead == 0 || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
+            else if ((result == ReadDataResult::TIMEDOUT || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
             {
                 nPacketsMiss++;
                 continue;

@@ -95,7 +95,7 @@ class Application
         void fnSetMode(ApplicationConsts::Mode);
         ApplicationConsts::Mode fnGetMode(void);
         void fnConfigurePort(void);
-        void fnSend(char);
+        void fnSend(char*, int);
         void fnOnReceive(char);
         void fnHelp(void);
 

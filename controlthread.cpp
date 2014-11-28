@@ -20,7 +20,6 @@ DWORD WINAPI fnControl(LPVOID args)
     transmitArgs.bSYN1           = true;
     transmitArgs.pReceive        = &receiveArgs;
     transmitArgs.pTransmitBuffer = controlArgs->pTransmitBuffer;
-    transmitArgs.pOverlapped     = controlArgs->pOverlapped;
     transmitArgs.pHCommPort      = controlArgs->pHCommPort;
 
     // initialize receive thread structures
@@ -30,7 +29,6 @@ DWORD WINAPI fnControl(LPVOID args)
     receiveArgs.bRVI         = false;
     receiveArgs.bSYN1        = false;
     receiveArgs.pTransmit    = &transmitArgs;
-    receiveArgs.pOverlapped  = controlArgs->pOverlapped;
     receiveArgs.pHCommPort   = controlArgs->pHCommPort;
 
     // enter main control loop
