@@ -56,20 +56,20 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     DWORD dwBytesRead;
     short nPacketsSent;
     short nPacketsMiss;
-    char pSCurrPacket[PACKET_SIZE];
+    char* pSCurrPacket;
 
     pTransmit->pReceive->bRequestStop = true;
 	
 	if(pTransmit->pReceive->bRVI)
 	{
 		//TODO
-		//fnSendData(RVI, (*pTransmit->pHCommPort));
+		fnSendData(RVI, (*pTransmit->pHCommPort));
 		pTransmit->pReceive->bRVI = false;
 	}
 	else
 	{
 		//TODO
-		//fnSendData(ENQ, (*pTransmit->pHCommPort));
+		fnSendData(ENQ, (*pTransmit->pHCommPort));
 	}
 
     while(byReceivedChar != ACK)
@@ -91,7 +91,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     {
         //TODO
         // "Add || maybe" - Eric
-        //pSCurrPacket = fnPacketizeData(pTransmit, nPacketsSent >= MAX_SENT);
+        pSCurrPacket = fnPacketizeData(*pTransmit, nPacketsSent >= MAX_SENT);
         
         nPacketsMiss = 0;
         nPacketsSent++;
@@ -99,7 +99,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
         while(true)
         {
             //TODO
-            //fnSendData(pSCurrPacket);
+            fnSendData(pSCurrPacket);
             dwBytesRead = 0;
             ReadFile(*(pTransmit->pHCommPort), &byReceivedChar, 1, &dwBytesRead, NULL);
             if ((dwBytesRead == 0 && nPacketsMiss >= MAX_MISS) ||
