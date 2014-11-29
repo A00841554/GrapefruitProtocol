@@ -62,6 +62,13 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 
     // Set receive structure
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
+    
+    ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+    PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+
+    // set up overlapped structure
+    memset(stReceive->pOverlapped, 0, sizeof(OVERLAPPED));
+    (stReceive->pOverlapped)->hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
     OutputDebugString("fnReceiveThreadIdle: Started\n");
 
@@ -171,6 +178,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                     // to issue another read until the first one finishes.
                     //
                     // This is a good time to do some background work.
+
                     OutputDebugString("fnReceiveThreadIdle: WaitForSingleObject Timed out\n");
                     break;
 
@@ -216,6 +224,9 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     char  strErrorBuffer[MAX_PATH+1] = {0};
 
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
+
+    ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+    PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 
     // stop the transmit thread
     (stReceive->pTransmit)->bStopped = TRUE;
@@ -336,6 +347,16 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                 // This is a good time to do some background work.
                 OutputDebugString("fnReceiveThreadActive:" 
                                   "WaitForSingleObject Timed out\n");
+                // Purge all data curently in the overlapped structure
+                ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+                PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+                                    dwErr = GetLastError();
+                sprintf_s(strErrorBuffer,
+                              MAX_PATH,
+                              "fnReceiveThreadActive:"
+                              "purgeComm: 0x%x\n",
+                              dwErr);
+                OutputDebugString(strErrorBuffer);
                 CloseHandle(stReceive->pOverlapped->hEvent); // Close handle for event
 
                 stReceive->bStopped = true;
@@ -353,7 +374,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
         }
     }
 
-    stReceive->bStopped = true;
+    stReceive->bStopped = TRUE;
     stReceive->bActive = FALSE;
 
     return 0;
