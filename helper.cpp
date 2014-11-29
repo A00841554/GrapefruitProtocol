@@ -12,6 +12,7 @@ CRC---------------- NOT DONE YET !!
 #include <iostream>
 #include <cstring>
 #include <stdlib.h>
+#include <assert.h>
 #include "helper.h"
 //#include "crc.h"
 
@@ -90,18 +91,18 @@ void fnDropHeadPacketData(TransmitArgs& transmit)
 
 bool fnValidatePacket(char byPacket[]) {
 
-    char byCurrData[DATA_SIZE] = "";
+    //char byCurrData[DATA_SIZE] = "";
     
-    for (int d = 0; d < DATA_SIZE;d++)
-        byCurrData[d] = byPacket[d + HEADER_SIZE];
+    //for (int d = 0; d < DATA_SIZE;d++)
+    //    byCurrData[d] = byPacket[d + HEADER_SIZE];
     
     // eric commented out crc code, because he couldnt find it on his machine
     //crcInit();
     //char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
     
-    for (int v = 0; v < VALIDTION_SIZE; v++)
-        if ( byPacket[v + HEADER_SIZE + DATA_SIZE] != byTheCRC[v])
-            return false;
+    //for (int v = 0; v < VALIDTION_SIZE; v++)
+    //    if ( byPacket[v + HEADER_SIZE + DATA_SIZE] != byTheCRC[v])
+    //        return false;
             
     return true;
 }
@@ -209,18 +210,18 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
     OutputDebugString(sstm.str().c_str());
 
     OVERLAPPED ov;
-    DWORD dwRead;
+    DWORD byTransfered;
 
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    ReadFile(hCommPort, pBuffer, bytesToRead, &dwRead, &ov);
+    assert(!ReadFile(hCommPort, pBuffer, bytesToRead, NULL, &ov));
 
     switch (WaitForSingleObject(ov.hEvent, timeout))
     {
 
         case WAIT_OBJECT_0:
-        if (!GetOverlappedResult(hCommPort, &ov, &dwRead, true))
+        if (!GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE))
 		{
 		    DWORD dwErr = GetLastError();
             char strErrorBuffer[MAX_PATH+1] = {0};
@@ -230,7 +231,8 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
 		}
         else
 		{
-		    CloseHandle(ov.hEvent);
+		    CancelIoEx(hCommPort, &ov);
+            CloseHandle(ov.hEvent);
             return ReadDataResult::SUCCESS;
 		}
 
