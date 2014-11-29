@@ -35,8 +35,9 @@
 #include <iostream>
 #include <cstring>
 #include <stdlib.h>
+#include <assert.h>
 #include "helper.h"
-#include "crc.h"
+//#include "crc.h"
 
 using namespace std;
 
@@ -74,14 +75,12 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     char* byTheCRC   = byCurrData + DATA_SIZE;
     TransmitBuffer* pTransmitBuffer = transmit.pTransmitBuffer;
 
-    // fill packet with data (and or padding)
+    // fill packet with data (and padding)
     for (int i = 0; i < DATA_SIZE; i++)
     {
-        if (!pTransmitBuffer->empty())
+        if (i < transmit.pTransmitBuffer->size())
         {
-            char c = transmit.pTransmitBuffer->front();
-            transmit.pTransmitBuffer->erase(transmit.pTransmitBuffer->begin());
-            byCurrData[i] = c;
+            byCurrData[i] = transmit.pTransmitBuffer->at(i);
         }
         else
         {
@@ -129,6 +128,13 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 } // End of fnPacketizeData
 
 
+void fnDropHeadPacketData(TransmitArgs& transmit)
+{
+    auto packetStart = transmit.pTransmitBuffer->begin();
+    auto packetEnd = transmit.pTransmitBuffer->begin() + DATA_SIZE;
+    transmit.pTransmitBuffer->erase(packetStart, packetEnd);
+}
+
 /**
  * @function    fnValidatePacket    -> gets a packet which is then comparing the CRC in the packet
  *                                      to the calculated CRC and returns a boolean based on how
@@ -154,7 +160,7 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
  */
 bool fnValidatePacket(char byPacket[]) {
 
-    char byCurrData[DATA_SIZE] = "";
+    //char byCurrData[DATA_SIZE] = "";
     
     //retrieve only the data from the packet
     for (int d = 0; d < DATA_SIZE;d++)
@@ -406,18 +412,18 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
     OutputDebugString(sstm.str().c_str());
 
     OVERLAPPED ov;
-    DWORD dwRead;
+    DWORD byTransfered;
 
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    ReadFile(hCommPort, pBuffer, bytesToRead, &dwRead, &ov);
+    assert(!ReadFile(hCommPort, pBuffer, bytesToRead, NULL, &ov));
 
     switch (WaitForSingleObject(ov.hEvent, timeout))
     {
 
         case WAIT_OBJECT_0:
-        if (!GetOverlappedResult(hCommPort, &ov, &dwRead, true))
+        if (!GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE))
 		{
 		    DWORD dwErr = GetLastError();
             char strErrorBuffer[MAX_PATH+1] = {0};
@@ -427,7 +433,8 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
 		}
         else
 		{
-		    CloseHandle(ov.hEvent);
+		    CancelIoEx(hCommPort, &ov);
+            CloseHandle(ov.hEvent);
             return ReadDataResult::SUCCESS;
 		}
 

@@ -92,6 +92,9 @@ CommPort::CommPort(std::string portName)
     // initialize variables from function parameters
     mPortName = portName;
 
+    // set up COMMTIMEOUTS structure
+    memset(&mCommTimeouts, 15, sizeof(COMMTIMEOUTS));
+
     // set up COMMCONFIG structure
     memset(&mCommConfig, 0, sizeof(COMMCONFIG));
     mCommConfig.dwSize = sizeof(COMMCONFIG);
@@ -363,7 +366,8 @@ int CommPort::fnOpen(void)
             && GetCommState(mHComm, &mDcb)
             && BuildCommDCB("96,N,8,1", &mDcb)
             && SetCommState(mHComm, &mDcb)
-            && SetCommMask(mHComm, EV_RXCHAR))
+            && SetCommMask(mHComm, EV_RXCHAR)
+            && SetCommTimeouts(mHComm, &mCommTimeouts))
     {
 
         // set status to reflect status of serial port

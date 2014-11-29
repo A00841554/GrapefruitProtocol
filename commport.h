@@ -189,10 +189,7 @@ class CommPort
 		/** vector of characters to send */
 		TransmitBuffer transmitBuffer;
 
-        /**
-         * structure containing timeout variables for reading and writing to and
-         *   from the comm port
-         */
+        /** sommunication timeouts */
         COMMTIMEOUTS mCommTimeouts;
 };
 
