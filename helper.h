@@ -1,3 +1,28 @@
+/**
+ * Definitions for the functions for the helper.cpp are included in here
+ *
+ * @sourceFile      helper.h
+ *
+ * @program      
+ *
+ * @classes         n/a
+ *
+ * @functions       none
+ *
+ * @date            November 21st, 2014
+ *
+ * @revisions
+ *                  November 21st, 2014 ->  added fnIsETB( char byPacket[] )
+ *                                          added fnCheckDuplicate (char byPacket[], ReceiveArgs &receive)
+ *                                          added void fnSendData(char byControlChar, HANDLE hCommPort)
+ *
+ * @designer        Jonathan Chu
+ *
+ * @programmer      Jonathan Chu
+ *
+ * @notes
+ * 
+ */
 #ifndef _HELPER_H_
 #define _HELPER_H_
 
