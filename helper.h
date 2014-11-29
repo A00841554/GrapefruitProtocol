@@ -26,6 +26,13 @@
 #ifndef _HELPER_H_
 #define _HELPER_H_
 
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <cstring>
+#include <stdlib.h>
+#include <assert.h>
+#include "crc.h"
 #include "controlthread.h"
 #include "protocolparams.h"
 
