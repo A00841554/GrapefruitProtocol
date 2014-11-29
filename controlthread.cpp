@@ -57,8 +57,8 @@ DWORD WINAPI fnControl(LPVOID args)
                 receiveArgs.bRequestStop = false;
                 receiveArgs.bStopped = false;
                 DWORD threadId;
-                //CreateThread(NULL, 0, fnReceiveThreadIdle, &receiveArgs, 0,
-                //        &threadId);
+                CreateThread(NULL, 0, fnReceiveThreadIdle, &receiveArgs, 0,
+                        &threadId);
             }
             if (transmitArgs.bStopped)
             {
