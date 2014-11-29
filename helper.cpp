@@ -1,12 +1,35 @@
-/*
-validatePacket----- NOT DONE YET !! -----> need CRC first
-packetizeData------ DONE !! ---> need some final changes (buffer)
-checkDuplicate----- DONE !!
-processData-------- DONE !!
-isEOT-------------- DONE !!
-sendData----------- DONE !!
-CRC---------------- NOT DONE YET !!
-*/
+/**
+ * Helper functions that will be used by the other parts of the program
+ *
+ * @sourceFile      helper.cpp
+ *
+ * @program      
+ *
+ * @classes         n/a 
+ *
+ * @functions    
+ *                  char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
+ *                  bool fnValidatePacket(char byPacket[])
+ *                  bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
+ *                  bool fnIsEOT( char byPacket[] )
+ *                  bool fnIsETB( char byPacket[] )
+ *                  void fnProcessData(char byPacket[])
+ *                  void fnSendData(char byControlChar, HANDLE hCommPort)
+ *                  void fnSendData(char byPacket[], HANDLE hCommPort)
+ *                  int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
+ *
+ *
+ * @date            November 19th, 2014
+ *
+ * @revisions       
+ *
+ * @designer        Jonathan Chu
+ *
+ * @programmer      Jonathan Chu
+ *
+ * @notes           none
+ */
+ 
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -17,10 +40,34 @@ CRC---------------- NOT DONE YET !!
 
 using namespace std;
 
-// Packetizes the data
+
+/**
+ * @function    fnPacketizeData     -> gets a buffer from TransmitArgs and then 
+ *                                      reads the written file and creates a packet.
+ *
+ * @date        November 19th, 2014
+ *
+ * @revision                         * Started with "hardcoded" values just for test *
+ *              November 24th, 2014 -> Added the CRC part of the program
+ *              November 28th, 2014 -> changed char(int) to ETB, EOT, etc..
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
+ *
+ * @param       transmit            -> A struct which takes care of the transmit part of our program
+ *              bForceEOT           -> A boolean that checks if the transmit thread wants to end Transmission
+ *
+ * @return      Char array (the packet)
+ *
+ * @note        
+ *
+ */
 char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
-{ //forceEOT = is eot needed to be put here
-    // allocate memory for packet
+{ 
+    // allocate memory for packet and its parts
     char* byPacket   = new char[PACKET_SIZE];
     char* byHeader   = byPacket;
     char* byCurrData = byHeader + HEADER_SIZE;
@@ -52,6 +99,7 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
         byHeader[0] = ETB;
     }
 
+    //check if its equal to previous packet
     if (transmit.bSYN1)
     {
         byHeader[1] = SYN1;
@@ -62,9 +110,8 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
         byHeader[1] = SYN2;
         transmit.bSYN1 = true;
     }
-    /*
-    Get CRC value by calling CRC(currData)
-    */
+    
+    //get the CRC 
     crcInit();
     char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
 
@@ -79,19 +126,45 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
         byPacket[v + HEADER_SIZE + DATA_SIZE] = byTheCRC[v];
 
     return byPacket;
+} // End of fnPacketizeData
 
-} // End of packetizeData
 
+/**
+ * @function    fnValidatePacket    -> gets a packet which is then comparing the CRC in the packet
+ *                                      to the calculated CRC and returns a boolean based on how
+ *                                      the comparison went.
+ *
+ * @date        November 21st, 2014
+ *
+ * @revision    
+ *              November 24th, 2014 ->  Added the CRC part           
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   bool fnValidatePacket(char byPacket[])
+ *
+ * @param       byPacket[]          -> The packet that will be validated.
+ *
+ * @return      boolean             -> The result of the comparison as to whether there were errors or not
+ *
+ * @note        
+ *
+ */
 bool fnValidatePacket(char byPacket[]) {
 
     char byCurrData[DATA_SIZE] = "";
     
+    //retrieve only the data from the packet
     for (int d = 0; d < DATA_SIZE;d++)
         byCurrData[d] = byPacket[d + HEADER_SIZE];
     
+    //apply the CRC
     crcInit();
     char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
     
+    //returns false if CRC do not match
     for (int v = 0; v < VALIDTION_SIZE; v++)
         if ( byPacket[v + HEADER_SIZE + DATA_SIZE] != byTheCRC[v])
             return false;
@@ -100,7 +173,31 @@ bool fnValidatePacket(char byPacket[]) {
 }
 
 
-bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
+/**
+ * @function    fnCheckDuplicate    -> checks if the current packet sent is the one intended
+ *                                      or a resend of the previous packet.
+ *                                      
+ * @date        November 24th, 2014
+ *
+ * @revision    
+ *              November 28th, 2014 -> changed char(int) to ETB, EOT, etc..
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
+ *
+ * @param       byPacket[]          -> The packet that will be checked for duplicate.
+ *              receive             -> The struct which takes care of the receive part of the program
+ *
+ * @return      boolean             -> returns the result after knowing if it is meant or not for
+ *                                      the current received packet.
+ *
+ * @note        
+ *
+ */
+bool fnCheckDuplicate (char byPacket[], ReceiveArgs &receive)
 {
     //if both are bSYN1 (dc2)
     if (byPacket[1] == SYN1 && receive.bSYN1)
@@ -114,7 +211,28 @@ bool checkDuplicate (char byPacket[], ReceiveArgs &receive)
     return false;
 }
 
-// Check if data is EOT
+/**
+ * @function    fnIsEOT             -> checks the packet and see if its the last packet or not  
+ *                                      
+ * @date        November 21st, 2014
+ *
+ * @revision   
+ *              November 28th, 2014 -> changed char(int) to ETB, EOT, etc..
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   bool fnIsEOT( char byPacket[] )
+ *
+ * @param       byPacket[]          -> The packet that will be pass on to see if its the last one or not.
+ *
+ * @return      boolean             -> Checks if the packet has an EOT char, and returns the boolean 
+ *                                      accordingly.
+ *
+ * @note        
+ *
+ */
 bool fnIsEOT( char byPacket[] )
 {
     if (byPacket[0] == EOT)
@@ -123,7 +241,28 @@ bool fnIsEOT( char byPacket[] )
         return false;
 }
 
-// Check if data is ETB
+/**
+ * @function    fnIsETB             -> checks the packet and see if its the last packet or not  
+ *                                      
+ * @date        November 24th, 2014
+ *
+ * @revision   
+ *              November 28th, 2014 -> changed char(int) to ETB, EOT, etc..
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   bool fnIsETB( char byPacket[] )
+ *
+ * @param       byPacket[]          -> The packet that will be pass on to see if its the last one or not.
+ *
+ * @return      boolean             -> Checks if the packet has an ETB char, and returns the boolean 
+ *                                      accordingly.
+ *
+ * @note        
+ *
+ */
 bool fnIsETB( char byPacket[] )
 {
     if (byPacket[0] == ETB)
@@ -132,7 +271,28 @@ bool fnIsETB( char byPacket[] )
         return false;
 }
 
-// processData will process the received valid data
+/**
+ * @function    fnProcessData       -> Prints all the characters in the Data part of the 
+ *                                      packet until an ETX control character is found
+ *                                      
+ * @date        November 21st, 2014
+ *
+ * @revision   
+ *              November 28th, 2014 -> changed char(int) to ETB, EOT, etc..
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   void fnProcessData(char byPacket[])
+ *
+ * @param       byPacket[]          -> The packet that is to be printed.
+ *
+ * @return      void
+ *
+ * @note        
+ *
+ */
 void fnProcessData(char byPacket[])
 {
     for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
@@ -145,6 +305,28 @@ void fnProcessData(char byPacket[])
     }
 }
 
+/**
+ * @function    fnSendData          -> Sends a packet to the port
+ *                                      
+ * @date        November 21st, 2014
+ *
+ * @revision   
+ *              November 28th, 2014 -> modified for overlapped
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   void fnSendData(char byPacket[], HANDLE hCommPort)
+ *
+ * @param       byPacket[]          -> The packet that is to be send.
+                hCommPort           -> The handle for the port              
+ *
+ * @return      void
+ *
+ * @note        
+ *
+ */
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
     OutputDebugString("helper: send packet");
@@ -161,6 +343,28 @@ void fnSendData(char byPacket[], HANDLE hCommPort)
 	CloseHandle(ov.hEvent);
 }
 
+/**
+ * @function    fnSendData          -> Sends a control character to the port
+ *                                      
+ * @date        November 24th, 2014
+ *
+ * @revision   
+ *              November 28th, 2014 -> modified for overlapped
+ *
+ * @designer    Jonathan Chu
+ *
+ * @programmer  Jonathan Chu
+ *
+ * @signature   void fnSendData(char byPacket[], HANDLE hCommPort)
+ *
+ * @param       byControlChar       -> The control character that is to be send.
+ *              hCommPort           -> The handle for the port              
+ *
+ * @return      void
+ *
+ * @note        
+ *
+ */
 void fnSendData(char byControlChar, HANDLE hCommPort)
 {
     std::stringstream sstm;
