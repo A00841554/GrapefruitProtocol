@@ -29,15 +29,8 @@
  *
  * @notes           none
  */
- 
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <cstring>
-#include <stdlib.h>
-#include <assert.h>
+
 #include "helper.h"
-//#include "crc.h"
 
 using namespace std;
 
@@ -112,7 +105,8 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     
     //get the CRC 
     crcInit();
-    char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
+    crc crc = crcFast((unsigned char*) byCurrData, DATA_SIZE);
+    memcpy(&byTheCRC[0], &crc, sizeof(crc));
 
     //group up all the pieces to create a packet
     for (int h = 0; h < HEADER_SIZE;h++)
@@ -160,22 +154,14 @@ void fnDropHeadPacketData(TransmitArgs& transmit)
  */
 bool fnValidatePacket(char byPacket[]) {
 
-    //char byCurrData[DATA_SIZE] = "";
-    
-    //retrieve only the data from the packet
-    for (int d = 0; d < DATA_SIZE;d++)
-        byCurrData[d] = byPacket[d + HEADER_SIZE];
-    
-    //apply the CRC
+    char* byPacketData = byPacket + HEADER_SIZE;
+    char* byPacketCrc = byPacketData + DATA_SIZE;
+
+    // apply the CRC
     crcInit();
-    char byTheCRC[VALIDTION_SIZE] = crcFast(byCurrData,strlen(byCurrData));
-    
-    //returns false if CRC do not match
-    for (int v = 0; v < VALIDTION_SIZE; v++)
-        if ( byPacket[v + HEADER_SIZE + DATA_SIZE] != byTheCRC[v])
-            return false;
-            
-    return true;
+    crc syndrome = crcFast((unsigned char*) byPacketData, DATA_SIZE);
+
+    return syndrome == *(crc*) byPacketCrc;
 }
 
 
