@@ -65,12 +65,14 @@
  *                   describes the default colors used to display some text if
  *                   no other colors are specified
  */
-Terminal::Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndStatus)
+Terminal::Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndEdit, HWND* hwndStatus, HWND* hwndStatistics)
 {
     hwndMain = hwnd;
     hwndSent = hwndLeft;
     hwndReceived = hwndRight;
+    hwndEditBox = hwndEdit;
     hwndStsBar = hwndStatus;
+    hwndStats = hwndStatistics;
 }
 
 /**

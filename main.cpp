@@ -41,6 +41,7 @@
 
 
 
+
 ///////////////
 // Constants //
 ///////////////
@@ -64,13 +65,6 @@ CommPort* oCommPort;
 
 /** application object that handles many of the windows events */
 Application* oApp;
-
-HWND hwnd;
-HWND hwndRight;
-HWND hwndLeft;
-HWND hwndStatus;
-HWND hwndEdit;
-
 
 //////////////////////////
 // Forward declarations //
@@ -216,7 +210,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             NULL);                                // CreateStruct [optional]
 
         // Create an input box
-        hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
+        HWND hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
             "EDIT",
             "",
             WS_CHILD|WS_VISIBLE|
@@ -269,7 +263,10 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             NULL);
 
         // create objects
-        oTerminal = new Terminal(&hwnd, &hwndLeft, &hwndRight, &hwndStatus);
+        oTerminal = new Terminal(&hwnd, &hwndLeft, &hwndRight, &hwndEdit, &hwndStatus, &hwndStats);
+        
+        Terminal mainTerminal = *oTerminal;
+
         oCommPort = new CommPort(DEFAULT_PORT_NAME);
         oApp = new Application(hwnd, oCommPort, oTerminal);
 
@@ -357,9 +354,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 /////////////////////
                 case IDC_MAIN_BUTTON:
                 {
-					char string[5000];
-					GetWindowText(hwndEdit, string, 5000);
-					(*oApp).fnSend(string, strlen(string));
+                    char string[5000];
+                    GetWindowText(*oTerminal->hwndEditBox, string, 5000);
+                    (*oApp).fnSend(string, strlen(string));
                     break;
                 }
 

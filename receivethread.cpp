@@ -52,7 +52,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 
     DWORD dwRead;
     DWORD dwErr;
-    DWORD dwWait;
+    //DWORD dwWait;
     BOOL bWaitReturn = false;
     BOOL bWaitRead = false;
 

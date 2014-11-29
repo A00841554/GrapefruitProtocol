@@ -3,7 +3,7 @@
  * identification numbers of menu items in the menu bar of the application's
  *   window
  */
-
+#include "terminal.h"
 /** selecting a communications port menu item IDs */
 #define IDM_COM1                101
 #define IDM_COM2                102
