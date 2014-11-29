@@ -355,7 +355,7 @@ void Application::fnConfigurePort(void)
  *
  * @param        c   character to send out the CommPort
  */
-/*void Application::fnSend(char c)
+void Application::fnSend(char* pBuffer, int nCharsToSend)
 {
 
     // create a string stream that we will use to build a string, and print to
@@ -376,7 +376,7 @@ void Application::fnConfigurePort(void)
     {
 
         // send the character out through the port
-        switch ((*mPtrCommPort).fnSend(c))
+        switch ((*mPtrCommPort).fnSend(pBuffer, nCharsToSend))
         {
 
             case SUCCESS:
@@ -396,7 +396,7 @@ void Application::fnConfigurePort(void)
 
     // print whatever was in the string stream to the terminal
     (*mPtrTerminal).fnPrint(mStringStream.str());
-}*/
+}
 
 /**
  * prints a nice helpful help message to the Terminal
@@ -543,20 +543,7 @@ bool Application::fnStartControlThread(void)
         controlArgs.bRequestStop = false;
         controlArgs.bStopped = false;
         // todo: change the nullptr to an actual transmit buffer
-        controlArgs.pTransmitBuffer = new std::vector<char>();
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pTransmitBuffer->push_back('a');
-        controlArgs.pOverlapped = mPtrCommPort->fnGetOverlapped();
+        controlArgs.pTransmitBuffer = mPtrCommPort->fnGetTransmitBuffer();
         controlArgs.pHCommPort = mPtrCommPort->fnGetCommHandle();
 
         DWORD threadId;
