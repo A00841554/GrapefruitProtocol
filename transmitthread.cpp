@@ -74,7 +74,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     while(byReceivedChar != ACK)
     {
         dwBytesRead = 0;
-        int result = fnReadData(*(pTransmit->pHCommPort), &byReceivedChar, 1, 10000);
+        int result = fnReadData(*(pTransmit->pHCommPort), &byReceivedChar, 1, TIMEOUT_AFTER_T_ENQ);
         if (result != ReadDataResult::SUCCESS)
         {
             pTransmit->bActive = false;
@@ -88,7 +88,9 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
     while(true)
     {
-        pSCurrPacket = fnPacketizeData(*pTransmit, nPacketsSent >= MAX_SENT);
+        char pSCurrPacket[PACKET_SIZE];
+        fnPacketizeData(*pTransmit, pSCurrPacket, nPacketsSent >= MAX_SENT);
+        fnDropHeadPacketData(*pTransmit);
         
         nPacketsMiss = 0;
         nPacketsSent++;
@@ -97,7 +99,16 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
         {
             fnSendData(pSCurrPacket, *(pTransmit->pHCommPort));
             dwBytesRead = 0;
-            int result = fnReadData(*(pTransmit->pHCommPort), &byReceivedChar, 1, 10000);
+            int result = fnReadData(*(pTransmit->pHCommPort), &byReceivedChar, 1, TIMEOUT_AFTER_T_PACKET);
+
+            // if we missed too many times, we want to start transmitting where we left off; add the packet
+            // back to the head of our transmit buffer
+            if (result == ReadDataResult::TIMEDOUT && nPacketsMiss >= MAX_MISS)
+            {
+                fnAddHeadPacketData(*pTransmit, pSCurrPacket);
+            }
+
+            // check for conditions to exit from the transmit threads
             if ((result == ReadDataResult::TIMEDOUT && nPacketsMiss >= MAX_MISS) ||
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
@@ -107,19 +118,21 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 pTransmit->bReset = true;
                 return 0;
             }
+
+            // check for retransmit conditions
             else if ((result == ReadDataResult::TIMEDOUT || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
             {
                 nPacketsMiss++;
                 continue;
             }
 
+            // break out of retransmission loop, and transmit the next packet
             else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
             {
-                // data sent succesfullt; remove data sent in packet from transmit buffer
-                fnDropHeadPacketData(*pTransmit);
-                delete pSCurrPacket;
                 break;
             }
+
+            // check for RVI condition
             else if (byReceivedChar == RVI)
             {
                 pTransmit->bActive = false;
