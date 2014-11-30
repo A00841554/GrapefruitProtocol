@@ -83,7 +83,6 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         // Wait for event from the commport
         if (!bWaitRead)
         {
-            OutputDebugString("ReadFile\n");
             // Wait for ENQ
             if (!ReadFile(*(stReceive->pHCommPort), &cRead, 1, &dwRead, &ov))
             {
@@ -125,7 +124,6 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 
         if (bWaitRead) 
         {
-            OutputDebugString("WaitForSingleObject\n");
             switch(WaitForSingleObject(ov.hEvent, 500)) // Change timeout and put it somewhere
             {
                 // Read completed.
@@ -150,11 +148,10 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                                   cRead,
                                   dwRead);
                         OutputDebugString(strOutputDebugBuffer);
-                        
+
                         // Read char on port
                         // Check if chRead is an ENQ
-                        //if(cRead == 5)
-                        if(cRead == 48) // press 0 to test
+                        if(cRead == ENQ)
                         {
                             if((stReceive->pTransmit)->bActive == TRUE)
                             {
@@ -180,7 +177,6 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                     // to issue another read until the first one finishes.
                     //
                     // This is a good time to do some background work.
-
                     OutputDebugString("fnReceiveThreadIdle: WaitForSingleObject Timed out\n");
                     break;
 
@@ -188,14 +184,13 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                     // Error in the WaitForSingleObject; abort.
                     // This indicates a problem with the OVERLAPPED structure's
                     // event handle.
-                                            dwErr = GetLastError();
-                        sprintf_s(strErrorBuffer,
-                                  MAX_PATH,
-                                  "fnReceiveThreadIdle:" 
-                                  "Error GetOverlappedResult: 0x%x\n",
-                                  dwErr);
-                        OutputDebugString(strErrorBuffer);
-                    OutputDebugString("WaitForSingleObject default\n");
+                    dwErr = GetLastError();
+                    sprintf_s(strErrorBuffer,
+                              MAX_PATH,
+                              "fnReceiveThreadIdle:" 
+                             "Error GetOverlappedResult: 0x%x\n",
+                             dwErr);
+                    OutputDebugString(strErrorBuffer);
                     break;
             }
         }
@@ -244,7 +239,9 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
 
     // stop the transmit thread
     (stReceive->pTransmit)->bStopped = TRUE;
-    // sendData(ACK)
+    fnSendData(ACK, (*stReceive->pHCommPort));
+    fnUpdateStats(STATS_ACK);
+    
     OutputDebugString("fnReceiveThreadActive: Started\n");
 
     // return value for wait
@@ -275,7 +272,6 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                               "fnReceiveThreadActive: Error ReadFile: 0x%x\n",
                               dwErr);
                     OutputDebugString(strErrorBuffer);
-                    OutputDebugString("IO_PENDING\n");
                     stReceive->bStopped = true;
                     stReceive->bActive = FALSE;
                     return dwErr;
@@ -322,30 +318,44 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                               cRead,
                               dwRead);
                     OutputDebugString(strOutputDebugBuffer);
-                    // Check data if valid; bail if invalid
-                    // if(!validatePacket(receivedData)) {
-                    //     sendData(NAK)
-                    //     continue
-                    // }
 
-                    // ACK packet unless we want to RVI
-                    //if(stReceive->bRVI == false)
-                    //{
-                        //sendData(ACK)
-                    //}
+                    // To test received chars
                     fnProcessData(cRead);
-                    // process the data if it's not a duplicate...
-                    //if(checkDuplicate(receivedData, recieve) == false) {
+                    fnUpdateStats(STATS_PCKT_RECEIVED);
 
-                        // receivedData is not duplicate; process data
-                    //    processData(receivedData)
-                    //}
+                    // Check data if valid; bail if invalid
+                    if(!fnValidatePacket(cRead)) 
+                    {
+                        OutputDebugString("fnReceiveThreadActive: Invalid data");
+                        fnSendData(NAK, (*stReceive->pHCommPort));
+                        fnUpdateStats(STATS_NAK);
+                        fnUpdateStats(STATS_INVALID_PCKT);
+                        //ResetEvent(ov.hEvent);
+                        //ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+                        //PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+                    }
+                    else
+                    {
+                        // ACK packet unless we want to RVI
+                        if(stReceive->bRVI == false)
+                        {
+                            fnSendData(ACK, (*stReceive->pHCommPort));
+                        }
 
-                    // exit receive thread if EOT or we want to RVI
-                    //if(checkDuplicate(receivedData, recieve) == true
-                    //        and receive.RVI == true or isEOT(receiveData)) {
-                    //    break
-                    //}
+                        bool bDuplicate = fnCheckDuplicate(cRead, *stReceive);
+                        // process the data if it's not a duplicate...
+                        if(!bDuplicate)
+                        {
+                            // receivedData is not duplicate; process data
+                            fnProcessData(cRead);
+                        }
+
+                        // exit receive thread if EOT or we want to RVI
+                        if(bDuplicate || stReceive->bRVI == true || fnIsEOT(cRead)) 
+                        {
+                            break;
+                        }
+                    }
                 }
 
                 //  Reset flag so that another opertion can be issued.
@@ -353,26 +363,15 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
             }
             else if (dwWait == WAIT_TIMEOUT)
             {
-                // Operation isn't complete yet. fWaitingOnRead flag isn't
-                // changed since I'll loop back around, and I don't want
-                // to issue another read until the first one finishes.
-                //
-                // This is a good time to do some background work.
                 OutputDebugString("fnReceiveThreadActive:" 
                                   "WaitForSingleObject Timed out\n");
                 // Purge all data curently in the overlapped structure
                 ClearCommError((*stReceive->pHCommPort), NULL, NULL);
                 PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
-                                    dwErr = GetLastError();
-                sprintf_s(strErrorBuffer,
-                              MAX_PATH,
-                              "fnReceiveThreadActive:"
-                              "purgeComm: 0x%x\n",
-                              dwErr);
-                OutputDebugString(strErrorBuffer);
-                CloseHandle(&ov.hEvent); // Close handle for event
 
-                stReceive->bStopped = true;
+                CloseHandle(ov.hEvent); // Close handle for event
+
+                stReceive->bStopped = TRUE;
                 stReceive->bActive = FALSE;
 
                 return 0;
@@ -386,6 +385,9 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
             }
         }
     }
+
+    // Close handle for event
+    CloseHandle(ov.hEvent);
 
     stReceive->bStopped = TRUE;
     stReceive->bActive = FALSE;

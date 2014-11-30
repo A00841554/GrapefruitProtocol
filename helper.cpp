@@ -170,8 +170,7 @@ bool fnValidatePacket(char byPacket[]) {
     crcInit();
     crc syndrome = crcFast((unsigned char*) byPacketData, DATA_SIZE);
 
-    //return syndrome == *(crc*) byPacketCrc;
-    return true;
+    return syndrome == *(crc*) byPacketCrc;
 }
 
 
@@ -285,6 +284,7 @@ bool fnIsETB( char byPacket[] )
  * @designer    Jonathan Chu
  *
  * @programmer  Jonathan Chu
+ *              Marc Rafanan
  *
  * @signature   void fnProcessData(char byPacket[])
  *
@@ -297,21 +297,102 @@ bool fnIsETB( char byPacket[] )
  */
 void fnProcessData(char byPacket[])
 {
-    OutputDebugString("fnProcessData\n");
+    int iDataend = 0;
     for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
     {
         //check if current char being printed is an ETX
         if (byPacket[i] == ETX)
-            return;
-        // if not ETX then print
-        OutputDebugString("fnProcessData0\n");
-        int TextLen = SendMessage(*(mainTerminal.hwndReceived), WM_GETTEXTLENGTH, 0, 0);
-        OutputDebugString("fnProcessData1\n");
-        SendMessage(*(mainTerminal.hwndReceived), EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
-        OutputDebugString("fnProcessData2\n");
-        SendMessage(*(mainTerminal.hwndReceived), EM_REPLACESEL, FALSE, (LPARAM)byPacket[i]);
-        OutputDebugString("fnProcessData3\n");
+            break;
+        iDataend++;
     }
+
+    string str(byPacket);
+    string sData = str.substr(HEADER_SIZE, iDataend);
+    OutputDebugString(sData.c_str());
+
+    int TextLen = SendMessage(hReceived, WM_GETTEXTLENGTH, 0, 0);
+    SendMessage(hReceived, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
+    SendMessage(hReceived, EM_REPLACESEL, FALSE, (LPARAM)sData.c_str());
+}
+
+
+/**
+ * @function    fnProcessData       -> Updates the statistics for the session. 
+ *                                      
+ * @date        November 30th, 2014
+ *
+ * @revision   
+ *
+ * @designer    Marc Rafanan
+ *
+ * @programmer  Marc Rafanan
+ *
+ * @signature   void fnUpdateStats(const int iStat)
+ *
+ * @param       iStat           -> Identifier on what to stat to update.
+ *
+ * @return      void
+ *
+ * @note        Identifier declarations can be found in protocolparams.h
+ *              const int STATS_ACK = 1;
+ *              const int STATS_NAK = 2;
+ *              const int STATS_INVALID_PCKT = 3;
+ *              const int STATS_PCKT_RECEIVED = 4;
+ *              const int STATS_PCKT_SENT = 5;
+ *
+ */
+void fnUpdateStats(const int iStat)
+{
+    switch(iStat)
+    {
+        case STATS_ACK:
+            {
+                iAckSent++;
+                break;
+            }
+        case STATS_NAK:
+            {
+                iNakSent++;
+                break;
+            }
+        case STATS_INVALID_PCKT:
+            {
+                iInvalidPackets++;
+                break;
+            }
+        case STATS_PCKT_RECEIVED:
+            {
+                iPacketsReceived++;
+                break;
+            }
+        case STATS_PCKT_SENT:
+            {
+                iPacketsSent++;
+                break;
+            }
+    }
+
+    // Create output string for the statistic window
+    string sStatistics;
+
+    char cNumAck[21];// enough to hold all numbers up to 64-bits
+    sprintf(cNumAck, "%d", iAckSent);
+    char cNumNak[21];
+    sprintf(cNumNak, "%d", iNakSent);
+    char cNumInvPckts[21];
+    sprintf(cNumInvPckts, "%d", iInvalidPackets);
+    char cNumPcktsSent[21];
+    sprintf(cNumPcktsSent, "%d", iPacketsSent);
+    char cNumPcktsReceived[21];
+    sprintf(cNumPcktsReceived, "%d", iPacketsReceived);
+    
+    sStatistics = "Acks Sent: " + string(cNumAck) + 
+                  "\r\nNaks Sent: " + string(cNumNak) + 
+                  "\r\nInvalid Packets received: " + string(cNumInvPckts) +
+                  "\r\nPackets Sent: " + string(cNumPcktsSent) +
+                  "\r\nPackets Received: " + string(cNumPcktsReceived);
+
+    SendMessage(hStats,  WM_SETTEXT, FALSE, (LPARAM)sStatistics.c_str());
 }
 
 /**

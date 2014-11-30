@@ -66,7 +66,15 @@ CommPort* oCommPort;
 /** application object that handles many of the windows events */
 Application* oApp;
 
-Terminal mainTerminal;
+/** Declare global variables */
+HWND hMain, hSent, hReceived, hEdit, hStatusBar, hStats;
+
+/** Initialize Statistic values */
+int iAckSent = 0;
+int iNakSent = 0;
+int iInvalidPackets = 0;
+int iPacketsSent = 0;
+int iPacketsReceived = 0;
 
 //////////////////////////
 // Forward declarations //
@@ -187,7 +195,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         HWND hwndRight = CreateWindowEx (WS_EX_CLIENTEDGE,
             "EDIT",                             // String or Class name from the Register class
             "",                                 // Window name
-            WS_CHILD | WS_VSCROLL | WS_HSCROLL |WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOHSCROLL | ES_AUTOVSCROLL,   // Style
+            WS_CHILD | WS_VSCROLL | WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // Style
             rect.left + 20 + 15 + leftWidth,           // Initial horizontal position
             rect.top + 20,                        // Initial vertical position
             rightWidth,                           // width
@@ -210,6 +218,10 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             NULL,                                 // menu [optional]
             GetModuleHandle(NULL),                            // instance handle
             NULL);                                // CreateStruct [optional]
+        SendMessage(hwndStats,
+            WM_SETFONT,
+            (WPARAM)hfDefault,
+            MAKELPARAM(FALSE,0));
 
         // Create an input box
         HWND hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
@@ -267,7 +279,12 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         // create objects
         oTerminal = new Terminal(&hwnd, &hwndLeft, &hwndRight, &hwndEdit, &hwndStatus, &hwndStats);
 
-        Terminal mainTerminal = *oTerminal;
+        hMain = hwnd;
+        hSent = hwndLeft;
+        hReceived = hwndRight;
+        hEdit = hwndEdit;
+        hStatusBar = hwndStatus;
+        hStats = hwndStats;
 
         oCommPort = new CommPort(DEFAULT_PORT_NAME);
         oApp = new Application(hwnd, oCommPort, oTerminal);

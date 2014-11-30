@@ -27,4 +27,11 @@ const int DATA_SIZE      = 100;//1018;
 const int VALIDTION_SIZE = 4; //32 bits
 const int PACKET_SIZE    = HEADER_SIZE + DATA_SIZE + VALIDTION_SIZE;
 
+// statistics
+const int STATS_ACK = 1;
+const int STATS_NAK = 2;
+const int STATS_INVALID_PCKT = 3;
+const int STATS_PCKT_RECEIVED = 4;
+const int STATS_PCKT_SENT = 5;
+
 #endif

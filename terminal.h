@@ -91,6 +91,19 @@ class Terminal
         HWND* hwndMain, *hwndSent, *hwndReceived, *hwndEditBox, *hwndStsBar, *hwndStats;
 };
 
-extern Terminal mainTerminal;
+/* Handles for the Main window and panels */
+extern HWND hMain;
+extern HWND hSent;
+extern HWND hReceived;
+extern HWND hEdit;
+extern HWND hStats;
+extern HWND hStatusBar;
+
+/* Statistic values */
+extern int iAckSent;
+extern int iNakSent;
+extern int iInvalidPackets;
+extern int iPacketsSent;
+extern int iPacketsReceived;
 
 #endif

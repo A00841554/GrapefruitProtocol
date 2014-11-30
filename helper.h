@@ -43,6 +43,7 @@ bool fnValidatePacket(char byPacket[]);
 bool fnIsEOT( char byPacket[] );
 bool fnIsETB( char byPacket[] );
 void fnProcessData(char byPacket[]);
+void fnUpdateStats(const int iStat);
 void fnSendData(char byPacket[], HANDLE commPort);
 void fnSendData(char byControlChar, HANDLE hCommPort);
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout);
