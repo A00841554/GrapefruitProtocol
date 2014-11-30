@@ -350,10 +350,10 @@ BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
 		case RECEIVED_BOX:
 		{
 			MoveWindow(hwndChild,
-			((theMainWindow->right / 5) * 2) + 10,
+			((theMainWindow->right / 5) * 2) + 12,
 			20,
-			((theMainWindow->right / 5) * 2) - 30,
-			theMainWindow->bottom - 270,
+			((theMainWindow->right / 5) * 2) - 10,
+			theMainWindow->bottom - 250,
 			TRUE);
 		}
 			  break;
@@ -361,10 +361,10 @@ BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
 		case SENT_BOX:
 		{
 			MoveWindow(hwndChild,
+			10,
 			20,
-			20,
-			((theMainWindow->right / 5) * 2) - 30,
-			theMainWindow->bottom - 270,
+			((theMainWindow->right / 5) * 2) - 10,
+			theMainWindow->bottom - 250,
 			TRUE);
 		}
 			 break;
@@ -372,10 +372,10 @@ BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
 		case STATS_BOX:
 		{
 			MoveWindow(hwndChild,
-				((theMainWindow->right / 5) * 4) + 10,
+				((theMainWindow->right / 5) * 4) + 15,
 			20,
-			(theMainWindow->right / 5) - 20,
-			theMainWindow->bottom - 270,
+			(theMainWindow->right / 5) - 15,
+			theMainWindow->bottom - 250,
 			TRUE);
 		}
 			  break;
@@ -383,10 +383,10 @@ BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
 		case IDC_MAIN_EDIT:
 		{
 			MoveWindow(hwndChild,
-				20,
-				theMainWindow->bottom - 230,
-				(theMainWindow->right / 5) * 4 - 30,
-				100,
+				10,
+				theMainWindow->bottom - 210,
+				(theMainWindow->right / 5) * 4 - 10,
+				80,
 				TRUE);
 		}
 			break;
@@ -395,18 +395,18 @@ BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
 		{
 			MoveWindow(hwndChild,
 				((theMainWindow->right / 5) * 4) + 10,
-				theMainWindow->bottom - 240,
+				theMainWindow->bottom - 220,
 				(theMainWindow->right / 5) - 20,
-				120,
+				100,
 				TRUE);
 		}
 			break;
 		case STATUS_BAR:
 		{
 			MoveWindow(hwndChild,
-				20,
+				10,
 				theMainWindow->bottom - 110,
-				theMainWindow->right - 40,
+				theMainWindow->right - 20,
 				100,
 				TRUE);
 		}
