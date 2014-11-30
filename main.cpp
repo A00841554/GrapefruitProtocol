@@ -227,6 +227,10 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             (HMENU)STATS_BOX,                                 // menu [optional]
             GetModuleHandle(NULL),                            // instance handle
             NULL);                                // CreateStruct [optional]
+        SendMessage(hwndStats,
+            WM_SETFONT,
+            (WPARAM)hfDefault,
+            MAKELPARAM(FALSE,0));
 
         // Create an input box
         HWND hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
@@ -496,9 +500,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 /////////////////////
                 case IDC_MAIN_BUTTON:
                 {
-					char string[5000];
-					GetWindowText(*oTerminal->hwndEditBox, string, 500);
-					(*oApp).fnSend(string, strlen(string));
+                    char string[5000];
+                    GetWindowText(*oTerminal->hwndEditBox, string, 500);
+                    (*oApp).fnSend(string, strlen(string));
+                    if((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
+                    {
+                        SendMessage(*oTerminal->hwndEditBox, WM_SETTEXT, FALSE, (LPARAM)"");
+                    }
                     break;
                 }
 
@@ -601,13 +609,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 
             // get device context for painting
             hdc = BeginPaint (hwnd, &paintstruct);
+            RECT rcClient;
+            GetClientRect(hwnd, &rcClient);
 
             // Print labels
-            TextOut(hdc, 20, 0, "Sent", 4);
-            TextOut(hdc, 335, 0, "Received", 8);
-            TextOut(hdc, 650, 0, "Stats", 5);
-            TextOut(hdc, 20, 475, "Input", 5);
-            TextOut(hdc, 20, 560, "Status", 6);
+            TextOut(hdc, 10, 0, "Sent", 4);
+            TextOut(hdc, ((rcClient.right / 5) * 2) + 12, 0, "Received", 8);
+            TextOut(hdc, ((rcClient.right / 5) * 4) + 15, 0, "Stats", 5);
+            TextOut(hdc, 10, rcClient.bottom - 230, "Input", 5);
+            TextOut(hdc, 10, rcClient.bottom - 130, "Status", 6);
 
             // release device context...
             EndPaint (hwnd, &paintstruct);
