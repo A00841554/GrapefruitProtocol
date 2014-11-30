@@ -82,14 +82,15 @@ const static int TERMINAL_TEXT_PADDING = 3;
 class Terminal
 {
     public:
-        Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndStatus);
+        Terminal();
+        Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndEdit, HWND* hwndStatus, HWND* hwndStatistics);
         void fnPrint(std::string);
         void fnClearScreen(void);
 
-    private:
-
         /** handle to window that things are displayed on */
-        HWND* hwndMain, *hwndSent, *hwndReceived, *hwndStsBar;
+        HWND* hwndMain, *hwndSent, *hwndReceived, *hwndEditBox, *hwndStsBar, *hwndStats;
 };
+
+extern Terminal mainTerminal;
 
 #endif

@@ -32,11 +32,13 @@
 
 
 
-
 /////////////////
 // Constructor //
 /////////////////
+Terminal::Terminal()
+{
 
+}
 /**
  * instantiates a Terminal object.
  *

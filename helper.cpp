@@ -287,13 +287,20 @@ bool fnIsETB( char byPacket[] )
  */
 void fnProcessData(char byPacket[])
 {
+    OutputDebugString("fnProcessData\n");
     for (int i = HEADER_SIZE; i < (HEADER_SIZE + DATA_SIZE); i++)
     {
         //check if current char being printed is an ETX
         if (byPacket[i] == ETX)
             return;
         // if not ETX then print
-        cout << byPacket[i];
+        OutputDebugString("fnProcessData0\n");
+        int TextLen = SendMessage(*(mainTerminal.hwndReceived), WM_GETTEXTLENGTH, 0, 0);
+        OutputDebugString("fnProcessData1\n");
+        SendMessage(*(mainTerminal.hwndReceived), EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
+        OutputDebugString("fnProcessData2\n");
+        SendMessage(*(mainTerminal.hwndReceived), EM_REPLACESEL, FALSE, (LPARAM)byPacket[i]);
+        OutputDebugString("fnProcessData3\n");
     }
 }
 

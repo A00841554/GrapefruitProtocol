@@ -66,6 +66,8 @@ CommPort* oCommPort;
 /** application object that handles many of the windows events */
 Application* oApp;
 
+Terminal mainTerminal;
+
 //////////////////////////
 // Forward declarations //
 //////////////////////////
@@ -264,7 +266,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
 
         // create objects
         oTerminal = new Terminal(&hwnd, &hwndLeft, &hwndRight, &hwndEdit, &hwndStatus, &hwndStats);
-        
+
         Terminal mainTerminal = *oTerminal;
 
         oCommPort = new CommPort(DEFAULT_PORT_NAME);

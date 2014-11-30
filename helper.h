@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "crc.h"
+#include "terminal.h"
 #include "controlthread.h"
 #include "protocolparams.h"
 

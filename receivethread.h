@@ -23,6 +23,7 @@
 #include<stdio.h>
 #include "controlthread.h"
 #include "commport.h"
+#include "helper.h"
 
 DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg);
 DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg);
