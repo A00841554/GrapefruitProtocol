@@ -52,6 +52,7 @@ using namespace std;
  * @signature   char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
  *
  * @param       transmit            -> A struct which takes care of the transmit part of our program
+ *              packet              -> A PACKET_SIZE sized character array where the packet will be written to
  *              bForceEOT           -> A boolean that checks if the transmit thread wants to end Transmission
  *
  * @return      Char array (the packet)
@@ -59,10 +60,9 @@ using namespace std;
  * @note        
  *
  */
-char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
+void fnPacketizeData(TransmitArgs &transmit, char* byPacket, bool bForceEOT)
 { 
     // allocate memory for packet and its parts
-    char* byPacket   = new char[PACKET_SIZE];
     char* byHeader   = byPacket;
     char* byCurrData = byHeader + HEADER_SIZE;
     char* byTheCRC   = byCurrData + DATA_SIZE;
@@ -82,7 +82,7 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
     }
 
     // build packet header
-    if (bForceEOT || pTransmitBuffer->empty())
+    if (bForceEOT || pTransmitBuffer->size() < DATA_SIZE)
     {
         byHeader[0] = EOT;
     }
@@ -117,16 +117,25 @@ char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
 
     for (int v = 0; v < VALIDTION_SIZE; v++)
         byPacket[v + HEADER_SIZE + DATA_SIZE] = byTheCRC[v];
-
-    return byPacket;
 } // End of fnPacketizeData
 
 
 void fnDropHeadPacketData(TransmitArgs& transmit)
 {
     auto packetStart = transmit.pTransmitBuffer->begin();
-    auto packetEnd = transmit.pTransmitBuffer->begin() + DATA_SIZE;
+    auto packetEnd = (transmit.pTransmitBuffer->size() > DATA_SIZE) ?
+            transmit.pTransmitBuffer->begin() + DATA_SIZE :
+            transmit.pTransmitBuffer->end();
     transmit.pTransmitBuffer->erase(packetStart, packetEnd);
+}
+
+void fnAddHeadPacketData(TransmitArgs& transmit, char* byPacket)
+{
+    for (int i = DATA_SIZE + 1; i >= 0; --i)
+    {
+        transmit.pTransmitBuffer->insert(
+                transmit.pTransmitBuffer->begin(), byPacket[HEADER_SIZE+i]);
+    }
 }
 
 /**
@@ -161,7 +170,8 @@ bool fnValidatePacket(char byPacket[]) {
     crcInit();
     crc syndrome = crcFast((unsigned char*) byPacketData, DATA_SIZE);
 
-    return syndrome == *(crc*) byPacketCrc;
+    //return syndrome == *(crc*) byPacketCrc;
+    return true;
 }
 
 
@@ -400,10 +410,6 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
  */
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
 {
-    std::stringstream sstm;
-    sstm << "helper: reading\n";
-    OutputDebugString(sstm.str().c_str());
-
     OVERLAPPED ov;
     DWORD byTransfered;
 
@@ -414,31 +420,26 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
 
     switch (WaitForSingleObject(ov.hEvent, timeout))
     {
-
+        CancelIoEx(hCommPort, &ov);
+        CloseHandle(ov.hEvent);
+        
         case WAIT_OBJECT_0:
         if (!GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE))
 		{
-		    DWORD dwErr = GetLastError();
-            char strErrorBuffer[MAX_PATH+1] = {0};
-            sprintf_s(strErrorBuffer,MAX_PATH,"fnReadData: Error: 0x%x\n",dwErr);
-            OutputDebugString(strErrorBuffer);
+            std::stringstream sstm;
+            sstm << "fnReadData: Error: 0x" << GetLastError() << endl;
+            OutputDebugString(sstm.str().c_str());
             return ReadDataResult::ERR;
 		}
         else
 		{
-		    CancelIoEx(hCommPort, &ov);
-            CloseHandle(ov.hEvent);
             return ReadDataResult::SUCCESS;
 		}
 
         case WAIT_TIMEOUT:
-		CancelIoEx(hCommPort, &ov);
-		CloseHandle(ov.hEvent);
         return ReadDataResult::TIMEDOUT;
 
         default:
-		CancelIoEx(hCommPort, &ov);
-		CloseHandle(ov.hEvent);
         return ReadDataResult::FAIL;
     }
 }

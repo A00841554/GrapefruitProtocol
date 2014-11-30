@@ -37,7 +37,7 @@
 #include "controlthread.h"
 #include "protocolparams.h"
 
-char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT);
+void fnPacketizeData(TransmitArgs &transmit, char* packet, bool bForceEOT);
 bool fnCheckDuplicate (char byPacket[], ReceiveArgs &receive);
 bool fnValidatePacket(char byPacket[]);
 bool fnIsEOT( char byPacket[] );
@@ -46,7 +46,8 @@ void fnProcessData(char byPacket[]);
 void fnSendData(char byPacket[], HANDLE commPort);
 void fnSendData(char byControlChar, HANDLE hCommPort);
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout);
-void fnDropHeadPacketData(TransmitArgs& transmit);
+void fnDropHeadPacketData(TransmitArgs&);
+void fnAddHeadPacketData(TransmitArgs&, char*);
 
 namespace ReadDataResult
 {
