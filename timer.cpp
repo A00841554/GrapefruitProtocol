@@ -123,7 +123,8 @@ void Timer::fnClockStop()
  *
  * @param           
  *
- * @return          returns the time that has passed from the start of the timer
+ * @return          returns the time in milliseconds that has passed from the
+ *                   start of the timer
  *                   until the stop of the timer.
  *
  * @revisions    
@@ -135,24 +136,30 @@ void Timer::fnClockStop()
  * @notes
  *
  */
-float Timer::fnTimeElapsed()
+int Timer::fnTimeElapsed()
 {
     if (bStarted) 
-        return float( tStop - tStart ) /  CLOCKS_PER_SEC;
-
-    return 0;
+        return ( tStop - tStart ) / TICKS_PER_MILLISECOND;
+    else
+        return ( std::clock() - tStart ) / TICKS_PER_MILLISECOND;
 }
 
 /*
       //Testing purposes
 
+#include <windows.h>
+#include <iostream>
+#include <sstream>
 int main( void ) 
 {
     Timer hey;
+
     hey.fnClockStart();
     Sleep(5000);
     hey.fnClockStop();
-    cout << hey.fnTimeElapsed();
-        Sleep(5000);   
+
+	std::stringstream sstm;
+	sstm << hey.fnTimeElapsed() << std::endl;
+	OutputDebugString(sstm.str().c_str());
 }
 */

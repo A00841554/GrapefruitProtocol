@@ -11,15 +11,16 @@ struct ReceiveArgs;
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
 {
-    BOOL bRequestStop;  // true to request the thread to stop
-    BOOL bStopped;      // true if thread is stopped; false otherwise
-    BOOL bActive;       // true if thread is in its "active" state
+    HANDLE hRequestStop;    // signaled to request the thread to stop
+    BOOL bStopped;          // true if thread is stopped; false otherwise
+    HANDLE hRequestActive;  // signaled to request the thread to stop
+    BOOL bActive;           // true if thread is in its "active" state
 
     BOOL bReset;        // true if state of transmit thread should be "reset"
     BOOL bSYN1;         // true if current data us SYN1
 
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
-    
+
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
     HANDLE* pHCommPort;    // reference to serial port
 };
@@ -43,6 +44,7 @@ struct ControlArgs
 {
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
+    HANDLE hRequestTransmit;// raised to activate the transmit thread to send data
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
     HANDLE* pHCommPort;     // reference to serial port

@@ -3,7 +3,7 @@
  *
  * @sourceFile      helper.h
  *
- * @program      
+ * @program
  *
  * @classes         n/a
  *
@@ -21,7 +21,7 @@
  * @programmer      Jonathan Chu
  *
  * @notes
- * 
+ *
  */
 #ifndef _HELPER_H_
 #define _HELPER_H_
@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "crc.h"
+#include "timer.h"
 #include "controlthread.h"
 #include "protocolparams.h"
 
@@ -41,12 +42,17 @@ bool fnCheckDuplicate (char byPacket[], ReceiveArgs &receive);
 bool fnValidatePacket(char byPacket[]);
 bool fnIsEOT( char byPacket[] );
 bool fnIsETB( char byPacket[] );
+
 void fnProcessData(char byPacket[]);
+
+void fnDropHeadPacketData(TransmitArgs*);
+void fnAddHeadPacketData(TransmitArgs*, char*);
+
 void fnSendData(char byPacket[], HANDLE commPort);
 void fnSendData(char byControlChar, HANDLE hCommPort);
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout);
-void fnDropHeadPacketData(TransmitArgs&);
-void fnAddHeadPacketData(TransmitArgs&, char*);
+int fnWaitForChar(HANDLE hCommPort, char expectedChar, DWORD timeout);
+int fnWaitForChars(HANDLE hCommPort, char* readChar, char* expectedChars, int expectedCharsLen, DWORD timeout);
 
 namespace ReadDataResult
 {

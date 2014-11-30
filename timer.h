@@ -65,10 +65,13 @@ class Timer
         Timer();
         void fnClockStart();
         void fnClockStop();
-        float fnTimeElapsed();
+        int fnTimeElapsed();
 
     private:
         clock_t tStart;
         clock_t tStop;
         bool bStarted;
 };
+
+/** number of clock ticks per millisecond */
+const float TICKS_PER_MILLISECOND = CLOCKS_PER_SEC * 1000;

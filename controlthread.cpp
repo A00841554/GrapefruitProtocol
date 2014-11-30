@@ -13,8 +13,9 @@ DWORD WINAPI fnControl(LPVOID args)
     ReceiveArgs receiveArgs;
 
     // initialize transmit structure
-    transmitArgs.bRequestStop    = false;
+    transmitArgs.hRequestStop    = CreateEvent(NULL, TRUE, FALSE, NULL);
     transmitArgs.bStopped        = true;
+    transmitArgs.hRequestActive  = CreateEvent(NULL, TRUE, FALSE, NULL);//controlArgs->hRequestTransmit;
     transmitArgs.bActive         = false;
     transmitArgs.bReset          = false;
     transmitArgs.bSYN1           = true;
@@ -38,7 +39,7 @@ DWORD WINAPI fnControl(LPVOID args)
         if (controlArgs->bRequestStop) {
             OutputDebugString("Control thread stopping\n");
             receiveArgs.bRequestStop = true;
-            transmitArgs.bRequestStop = true;
+            SetEvent(transmitArgs.hRequestStop);
 
             if (receiveArgs.bStopped && transmitArgs.bStopped)
             {
@@ -62,7 +63,7 @@ DWORD WINAPI fnControl(LPVOID args)
             }
             if (transmitArgs.bStopped)
             {
-                transmitArgs.bRequestStop = false;
+                ResetEvent(transmitArgs.hRequestStop);
                 transmitArgs.bStopped = false;
                 DWORD threadId;
                 CreateThread(NULL, 0, fnTransmitIdle, &transmitArgs, 0,
