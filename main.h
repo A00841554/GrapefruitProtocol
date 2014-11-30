@@ -31,7 +31,13 @@
 #define IDM_CONFIGURE_PORT      114
 
 /** send button id */
-#define IDC_MAIN_BUTTON         115
+#define IDC_MAIN_BUTTON         115		//<----- PUSH BUTTON
 
 /** Edit box identifier */
-#define IDC_MAIN_EDIT           116
+#define IDC_MAIN_EDIT           116     //<-- INPUT BOX
+
+/** Identifiers for the rest of the elements in the window */
+#define SENT_BOX				117
+#define RECEIVED_BOX			118
+#define STATS_BOX				119
+#define STATUS_BAR				120

@@ -13,10 +13,12 @@
  *                       LPSTR lspszCmdParam, int nCmdShow)
  *               LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM,
  *                       wParam, LPARAM lParam)
+ *				 BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
  *
  * @date         2014-09-25
  *
- * @revisions    none
+ * @revisions    
+ *				 2014-11-29		Added the EnumChildProc
  *
  * @designer     EricTsang
  *
@@ -37,7 +39,6 @@
 #include "main.h"
 #include "application.h"
 #include "protocolparams.h"
-
 
 
 
@@ -134,7 +135,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         Wcl.hCursor = LoadCursor(NULL, IDC_ARROW);
         Wcl.lpfnWndProc = WndProc;
         Wcl.hInstance = hInst;
-        Wcl.hbrBackground = (HBRUSH) GetStockObject(LTGRAY_BRUSH);
+        Wcl.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
         Wcl.lpszClassName = NAME;
         Wcl.lpszMenuName = "MYMENU";
         Wcl.cbClsExtra = 0;
@@ -187,22 +188,30 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             leftWidth,                          // width
             430,                                // height
             hwnd,                               // parent [optional]
-            NULL,                               // menu [optional]
+			(HMENU)SENT_BOX,                               // menu [optional]
             GetModuleHandle(NULL),              // instance handle
-            NULL);                              // CreateStruct [optional]
+            NULL);      
+
+		/*
+		
+		If you're just using the Win32 API, you normally handle this by handling the WM_SIZE message, 
+		and respond by calling GetClientRect on the parent window and MoveWindow on the children to 
+		move/resize the children to fill the parent appropriately
+		
+		*/
 
         // Create an Received box
         HWND hwndRight = CreateWindowEx (WS_EX_CLIENTEDGE,
             "EDIT",                             // String or Class name from the Register class
             "",                                 // Window name
-            WS_CHILD | WS_VSCROLL | WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // Style
+            WS_CHILD | WS_VSCROLL | WS_HSCROLL |WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOHSCROLL | ES_AUTOVSCROLL,   // Style
             rect.left + 20 + 15 + leftWidth,           // Initial horizontal position
             rect.top + 20,                        // Initial vertical position
             rightWidth,                           // width
             430,     // height
             hwnd,                                 // parent [optional]
-            NULL,                                 // menu [optional]
-            GetModuleHandle(NULL),                            // instance handle
+            (HMENU)RECEIVED_BOX,                                 // menu [optional]
+            GetModuleHandle(NULL),                // instance handle
             NULL);                                // CreateStruct [optional]
 
         // Create an Stats box
@@ -215,13 +224,9 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             130,                           // width
             430,     // height
             hwnd,                                 // parent [optional]
-            NULL,                                 // menu [optional]
+            (HMENU)STATS_BOX,                                 // menu [optional]
             GetModuleHandle(NULL),                            // instance handle
             NULL);                                // CreateStruct [optional]
-        SendMessage(hwndStats,
-            WM_SETFONT,
-            (WPARAM)hfDefault,
-            MAKELPARAM(FALSE,0));
 
         // Create an input box
         HWND hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
@@ -267,12 +272,12 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             "EDIT",         // name of status bar class
             "",           // no text when first created
             WS_CHILD |WS_VSCROLL| WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // creates a visible child window
-            20,
-            rect.bottom - 60,
-            leftWidth + rightWidth + 15 + 15 + 130,
-            40,
+            20,//--------------------------------------------------------------------->position X
+            rect.bottom - 60, //------------------------------------------------------>position y
+            leftWidth + rightWidth + 15 + 15 + 130,//----------------------------------> X status BAR length
+            40,//----------------------------------------------------------------------> Y status bar length
             hwnd,              // handle to parent window
-            NULL,       // child window identifier
+            (HMENU)STATUS_BAR,       // child window identifier
             GetModuleHandle(NULL),                   // handle to application instance
             NULL);
 
@@ -318,6 +323,113 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
     }
 }
 
+
+/**
+* Handles the updating for the size of our sub windows
+*
+* @function     EnumChildProc
+*
+* @date         November 29th, 2014
+*
+* @revisions    none
+*
+* @designer     Jonathan Chu
+*
+* @programmer   Jonathan Chu
+*
+* @param        lParam		additional information associated with Message
+*				hwndChild	A handler for the childs
+*
+* @return       returns true once its done
+*
+* @notes
+*/
+BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
+{
+	LPRECT theMainWindow;
+	int whichPanel;
+
+	// Retrieve the child-window identifier. Use it to set the 
+	// position of the child window. 
+	whichPanel = GetWindowLong(hwndChild, GWL_ID);
+
+	// looks for the panel
+	theMainWindow = (LPRECT)lParam;
+
+	switch (whichPanel)
+	{
+		case RECEIVED_BOX:
+		{
+			MoveWindow(hwndChild,
+			((theMainWindow->right / 5) * 2) + 12,
+			20,
+			((theMainWindow->right / 5) * 2) - 10,
+			theMainWindow->bottom - 250,
+			TRUE);
+		}
+			  break;
+
+		case SENT_BOX:
+		{
+			MoveWindow(hwndChild,
+			10,
+			20,
+			((theMainWindow->right / 5) * 2) - 10,
+			theMainWindow->bottom - 250,
+			TRUE);
+		}
+			 break;
+
+		case STATS_BOX:
+		{
+			MoveWindow(hwndChild,
+				((theMainWindow->right / 5) * 4) + 15,
+			20,
+			(theMainWindow->right / 5) - 15,
+			theMainWindow->bottom - 250,
+			TRUE);
+		}
+			  break;
+			  
+		case IDC_MAIN_EDIT:
+		{
+			MoveWindow(hwndChild,
+				10,
+				theMainWindow->bottom - 210,
+				(theMainWindow->right / 5) * 4 - 10,
+				80,
+				TRUE);
+		}
+			break;
+			
+		case IDC_MAIN_BUTTON:
+		{
+			MoveWindow(hwndChild,
+				((theMainWindow->right / 5) * 4) + 10,
+				theMainWindow->bottom - 220,
+				(theMainWindow->right / 5) - 20,
+				100,
+				TRUE);
+		}
+			break;
+		case STATUS_BAR:
+		{
+			MoveWindow(hwndChild,
+				10,
+				theMainWindow->bottom - 110,
+				theMainWindow->right - 20,
+				100,
+				TRUE);
+		}
+			break;
+	}
+
+	// Make sure the child window is visible. 
+	ShowWindow(hwndChild, SW_SHOW);
+
+	return TRUE;
+}
+
 /**
  * event message handler of this application
  *
@@ -354,13 +466,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
     PAINTSTRUCT paintstruct;// used by windows system...
     RECT clientRectangle;   // rectangle containing dimensions of client area
 
-    switch (Message)
-    {
-        case WM_CREATE:
-        {
 
-        }
-        break;
+	RECT rcClient;   //------------------->CHECK
+
+	switch (Message)
+	{
+		case WM_CREATE:
+		{
+
+		}
+			break;
+		//////////////////////
+		// Resizable Window // 
+		//////////////////////
+		case WM_SIZE:
+			GetClientRect(hwnd, &rcClient);
+			EnumChildWindows(hwnd, EnumChildProc, (LPARAM)&rcClient);
+		
+			break;
 
         ///////////////////////////////
         // Process menu bar messages //
@@ -373,9 +496,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 /////////////////////
                 case IDC_MAIN_BUTTON:
                 {
-                    char string[5000];
-                    GetWindowText(*oTerminal->hwndEditBox, string, 5000);
-                    (*oApp).fnSend(string, strlen(string));
+					char string[5000];
+					GetWindowText(*oTerminal->hwndEditBox, string, 500);
+					(*oApp).fnSend(string, strlen(string));
                     break;
                 }
 
@@ -416,6 +539,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 case IDM_COMMAND:
                     (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
                     break;
+
 
                 ////////////////////
                 // configure port //
@@ -478,7 +602,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
             // get device context for painting
             hdc = BeginPaint (hwnd, &paintstruct);
 
-            SetBkMode(hdc, TRANSPARENT); 
             // Print labels
             TextOut(hdc, 20, 0, "Sent", 4);
             TextOut(hdc, 335, 0, "Received", 8);
@@ -507,6 +630,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
     // return...
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * forward received callbacks to the application's receive function
