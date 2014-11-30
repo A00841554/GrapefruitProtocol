@@ -505,7 +505,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                     (*oApp).fnSend(string, strlen(string));
                     if((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
                     {
-                        SendMessage(*oTerminal->hwndEditBox, WM_SETTEXT, FALSE, (LPARAM)"");
+                        SetWindowText(*oTerminal->hwndEditBox, NULL);
+                        //SendMessage(*oTerminal->hwndEditBox, WM_SETTEXT, FALSE, (LPARAM)"");
                     }
                     break;
                 }
