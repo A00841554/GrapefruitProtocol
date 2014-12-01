@@ -17,26 +17,21 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 
     // check for data to send, or a request to stop
     OutputDebugString("TransmitThread: Idle\n");
-    HANDLE handles[] = {&(pTransmit->hRequestStop), &(pTransmit->hRequestActive)};
-    DWORD result = WaitForMultipleObjects(2, handles, false, INFINITE);
-    DWORD dwErr = GetLastError();
-    switch(result)
+    while(true)
     {
-
-        case WAIT_OBJECT_0+0:
-        _TransmitThread_::fnStop(pTransmit);
-        break;
-
-        case WAIT_OBJECT_0+1:
-        if(pTransmit->pReceive->bActive)
+        if(pTransmit->bRequestStop)
         {
             _TransmitThread_::fnStop(pTransmit);
+            break;
         }
-        else
+
+        if(!pTransmit->pTransmitBuffer->empty()) 
         {
             _TransmitThread_::fnGoActive(pTransmit);
+            break;
         }
-        break;
+        
+        Sleep(SHORT_SLEEP);
     }
 
     return 0;

@@ -11,10 +11,9 @@ struct ReceiveArgs;
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
 {
-    HANDLE hRequestStop;    // signaled to request the thread to stop
-    BOOL bStopped;          // true if thread is stopped; false otherwise
-    HANDLE hRequestActive;  // signaled to request the thread to stop
-    BOOL bActive;           // true if thread is in its "active" state
+    BOOL bRequestStop;  // true to request the thread to stop
+    BOOL bStopped;      // true if thread is stopped; false otherwise
+    BOOL bActive;       // true if thread is in its "active" state
 
     BOOL bReset;        // true if state of transmit thread should be "reset"
     BOOL bSYN1;         // true if current data us SYN1

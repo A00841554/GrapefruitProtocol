@@ -127,15 +127,10 @@ void fnDropHeadPacketData(TransmitArgs* pTransmit)
             pTransmit->pTransmitBuffer->begin() + DATA_SIZE :
             pTransmit->pTransmitBuffer->end();
     pTransmit->pTransmitBuffer->erase(packetStart, packetEnd);
-    if(pTransmit->pTransmitBuffer->empty())
-    {
-        ResetEvent(pTransmit->hRequestActive);
-    }
 }
 
 void fnAddHeadPacketData(TransmitArgs* pTransmit, char* byPacket)
 {
-    SetEvent(pTransmit->hRequestActive);
     for(int i = DATA_SIZE + 1; i >= 0; --i)
     {
         pTransmit->pTransmitBuffer->insert(
@@ -336,7 +331,7 @@ void fnProcessData(char byPacket[])
  */
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
-    OutputDebugString("helper: send packet");
+    OutputDebugString("helper: send packet\n");
 
     OVERLAPPED ov;
     DWORD dwBytesWritten;
@@ -408,6 +403,7 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
  */
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
 {
+    OutputDebugString("Helper: fnReadData\n");
     OVERLAPPED ov;
     DWORD byTransfered;
 
@@ -424,8 +420,9 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
         case WAIT_OBJECT_0:
         if(!GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE))
         {
+            DWORD err = GetLastError();
             std::stringstream sstm;
-            sstm << "fnReadData: Error: 0x" << GetLastError() << endl;
+            sstm << "fnReadData: Error: " << err << endl;
             OutputDebugString(sstm.str().c_str());
             return ReadDataResult::ERR;
         }
@@ -447,6 +444,7 @@ int fnWaitForChar(
         char expectedChar,
         DWORD timeout)
 {
+    OutputDebugString("fnWaitForChar\n");
     Timer timeoutTimer;
     char readChar;
 
@@ -497,6 +495,7 @@ int fnWaitForChars(
         int expectedCharsLen,
         DWORD timeout)
 {
+    OutputDebugString("fnWaitForChars\n");
     Timer timeoutTimer;
 
     timeoutTimer.fnClockStart();
@@ -516,11 +515,19 @@ int fnWaitForChars(
                 }
             }
             DWORD newTimeout = timeout - timeoutTimer.fnTimeElapsed();
-            return fnWaitForChars(hCommPort,
-                    readChar,
-                    expectedChars,
-                    expectedCharsLen,
-                    newTimeout);
+            if(newTimeout > 0)
+            {
+                return fnWaitForChars(
+                        hCommPort,
+                        readChar,
+                        expectedChars,
+                        expectedCharsLen,
+                        newTimeout);
+            }
+            else
+            {
+                return ReadDataResult::TIMEDOUT;
+            }
         }
 
         case ReadDataResult::TIMEDOUT:
