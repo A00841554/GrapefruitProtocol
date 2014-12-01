@@ -388,7 +388,7 @@ void fnUpdateStats(const int iStat)
     
     int iReceivedErrorRate = (iInvalidPackets == 0 ? 0 : (iPacketsReceived)/iInvalidPackets);
     char cReceivedErrorRate[21];
-    sprintf(cReceivedErrorRate, "%d", iReceivedErrorRate);
+    sprintf_s(cReceivedErrorRate, "%d", iReceivedErrorRate);
 
     sStatistics = "Acks Sent: " + string(cNumAck) +
                   "\r\n\r\nNaks Sent: " + string(cNumNak) +
