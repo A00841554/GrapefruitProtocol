@@ -73,7 +73,6 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     {
         char pSCurrPacket[PACKET_SIZE];
         fnPacketizeData(*pTransmit, pSCurrPacket, nPacketsSent >= MAX_SENT);
-        fnDropHeadPacketData(pTransmit);
 
         nPacketsMiss = 0;
         nPacketsSent++;
@@ -86,11 +85,10 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                         expectedChars, sizeof(expectedChars),
                         TIMEOUT_AFTER_T_PACKET);
 
-            // if we missed too many times, we want to start transmitting where we left off; add the packet
-            // back to the head of our transmit buffer
-            if (result == ReadDataResult::TIMEDOUT && nPacketsMiss >= MAX_MISS)
+            // we received an ack, discard the packet because we don't need to retransmit it anymore
+            if (result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
             {
-                fnAddHeadPacketData(pTransmit, pSCurrPacket);
+                fnDropHeadPacketData(pTransmit);
             }
 
             // check for reset conditions
