@@ -386,11 +386,16 @@ void fnUpdateStats(const int iStat)
     char cNumPcktsReceived[21];
     sprintf(cNumPcktsReceived, "%d", iPacketsReceived);
     
-    sStatistics = "Acks Sent: " + string(cNumAck) + 
-                  "\r\nNaks Sent: " + string(cNumNak) + 
-                  "\r\nInvalid Packets received: " + string(cNumInvPckts) +
-                  "\r\nPackets Sent: " + string(cNumPcktsSent) +
-                  "\r\nPackets Received: " + string(cNumPcktsReceived);
+    int iReceivedErrorRate = (iInvalidPackets == 0 ? 0 : (iPacketsReceived)/iInvalidPackets);
+    char cReceivedErrorRate[21];
+    sprintf(cReceivedErrorRate, "%d", iReceivedErrorRate);
+
+    sStatistics = "Acks Sent: " + string(cNumAck) +
+                  "\r\n\r\nNaks Sent: " + string(cNumNak) +
+                  "\r\n\r\nPackets Sent: " + string(cNumPcktsSent) +
+                  "\r\n\r\nPackets Received: " + string(cNumPcktsReceived) +
+                  "\r\n\r\nInvalid Packets received: " + string(cNumInvPckts) +
+                  "\r\n\r\Received Packets Error Rate: " + string(cReceivedErrorRate);
 
     SendMessage(hStats,  WM_SETTEXT, FALSE, (LPARAM)sStatistics.c_str());
 }
@@ -410,7 +415,7 @@ void fnUpdateStats(const int iStat)
  * @signature   void fnSendData(char byPacket[], HANDLE hCommPort)
  *
  * @param       byPacket[]          -> The packet that is to be send.
-                hCommPort           -> The handle for the port              
+                hCommPort           -> The handle for the port
  *
  * @return      void
  *
