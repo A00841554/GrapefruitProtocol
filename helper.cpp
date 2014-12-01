@@ -406,6 +406,7 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
     OutputDebugString("Helper: fnReadData\n");
     OVERLAPPED ov;
     DWORD byTransfered;
+    int returnCode;
 
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -414,29 +415,34 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
 
     switch(WaitForSingleObject(ov.hEvent, timeout))
     {
-        CancelIoEx(hCommPort, &ov);
-        CloseHandle(ov.hEvent);
 
         case WAIT_OBJECT_0:
         if(!GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE))
         {
-            DWORD err = GetLastError();
             std::stringstream sstm;
-            sstm << "fnReadData: Error: " << err << endl;
+            sstm << "fnReadData: Error: " << GetLastError() << endl;
             OutputDebugString(sstm.str().c_str());
-            return ReadDataResult::ERR;
+            returnCode = ReadDataResult::ERR;
+            break;
         }
         else
         {
-            return ReadDataResult::SUCCESS;
+            returnCode = ReadDataResult::SUCCESS;
+            break;
         }
 
         case WAIT_TIMEOUT:
-        return ReadDataResult::TIMEDOUT;
+        CancelIoEx(hCommPort, &ov);
+        returnCode = ReadDataResult::TIMEDOUT;
+        break;
 
         default:
-        return ReadDataResult::FAIL;
+        returnCode = ReadDataResult::FAIL;
+        break;
     }
+
+    CloseHandle(ov.hEvent);
+    return returnCode;
 }
 
 int fnWaitForChar(
