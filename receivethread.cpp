@@ -262,7 +262,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
         if (!bWaitRead)
         {
             // Issue read operation.
-            if (!ReadFile(*(stReceive->pHCommPort), &cRead, 10, &dwRead, &ov)) // Wait for 10 Bytes for now
+            if (!ReadFile(*(stReceive->pHCommPort), &cRead, PACKET_SIZE, &dwRead, &ov))
             {
                 dwErr = GetLastError();
                 if (dwErr != ERROR_IO_PENDING)     // read not delayed?
