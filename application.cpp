@@ -423,11 +423,10 @@ void Application::fnHelp(void)
 	
     // create & print things to a string stream
     std::stringstream mStringStream;
-    mStringStream << " Manual: \r\n";
-    mStringStream << "  > Select Port:        Select the Comm Port that is going to be used.\r\n";
-    mStringStream << "  > Configure Port:  Configures the Current Comm Port being used.\r\n";
-    mStringStream << "  > Clear Screen:    Clears the current status screen.\r\n";
-    mStringStream << "  > Change Mode:   Selects the mode in which you are going to operate.";
+    mStringStream << " Manual:    > Select Port:        Select the Comm Port that is going to be used.\r\n";
+    mStringStream << "                  > Configure Port:  Configures the Current Comm Port being used.\r\n";
+    mStringStream << "                  > Clear Screen:    Clears the current status screen.\r\n";
+    mStringStream << "                  > Change Mode:   Selects the mode in which you are going to operate.\r\n";
 
 	(*mPtrTerminal).fnClearScreen();
     (*mPtrTerminal).fnPrint(mStringStream.str());
