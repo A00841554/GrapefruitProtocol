@@ -233,12 +233,17 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
 
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
+    // stop the transmit thread
+    (stReceive->pTransmit)->bStopped = TRUE;
+
+    OutputDebugString("Before Receive going full active\n");
     // wait for transmit thread to stop before going full active
     while(!stReceive->pTransmit->bStopped)
     {
+        OutputDebugString("while sleeping\n");
         Sleep(SHORT_SLEEP);
     }
-    OutputDebugString("Receive going full active");
+    OutputDebugString("Receive going full active\n");
 
     ClearCommError((*stReceive->pHCommPort), NULL, NULL);
     PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
@@ -247,8 +252,6 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    // stop the transmit thread
-    (stReceive->pTransmit)->bStopped = TRUE;
     fnSendData(ACK, (*stReceive->pHCommPort));
     fnUpdateStats(STATS_ACK);
     
