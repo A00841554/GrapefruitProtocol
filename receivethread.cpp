@@ -105,8 +105,8 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
             {
                 // Read char on port
                 // Check if chRead is an ENQ
-                //if(cRead == 5)
-                if(cRead == 48) // press 0 to test
+                if(cRead == ENQ)
+                //if(cRead == 48) // press 0 to test
                 {
                     if((stReceive->pTransmit)->bActive == TRUE)
                     {

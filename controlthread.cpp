@@ -82,7 +82,7 @@ int main(void) {
     a.bRequestStop = false;
     a.bStopped = false;
     a.bActive = false;
-    std::cout << a.bActive << std::endl;
+    std::cout << a.bActive << "\r\n";
     return 0;
 }
 */
