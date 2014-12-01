@@ -419,36 +419,16 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
  */
 void Application::fnHelp(void)
 {
-
+	
     // create & print things to a string stream
     std::stringstream mStringStream;
-    mStringStream << "   ^       ^       ^        ^     ^";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       |        |     |";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       |        |     +-prints this message";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       |        |";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       |        +-changes the application";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       |          mode";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       |";
-    mStringStream << std::endl;
-    mStringStream << "   |       |       +-clears the screen";
-    mStringStream << std::endl;
-    mStringStream << "   |       |";
-    mStringStream << std::endl;
-    mStringStream << "   |       +-configures the selected port";
-    mStringStream << std::endl;
-    mStringStream << "   |";
-    mStringStream << std::endl;
-    mStringStream << "   +-lets you select different serial ports to use";
-    mStringStream << std::endl;
+    mStringStream << " Manual: \r\n";
+    mStringStream << "  > Select Port:        Select the Comm Port that is going to be used.\r\n";
+    mStringStream << "  > Configure Port:  Configures the Current Comm Port being used.\r\n";
+    mStringStream << "  > Clear Screen:    Clears the current status screen.\r\n";
+    mStringStream << "  > Change Mode:   Selects the mode in which you are going to operate.";
 
-    // print whatever was in the string stream to the terminal
-    (*mPtrTerminal).fnClearScreen();
+	(*mPtrTerminal).fnClearScreen();
     (*mPtrTerminal).fnPrint(mStringStream.str());
 }
 
