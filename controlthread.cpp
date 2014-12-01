@@ -50,7 +50,7 @@ DWORD WINAPI fnControl(LPVOID args)
 
         // restart any threads that are stopped if the state of both threads are
         // not active
-        if (!receiveArgs.bActive && !transmitArgs.bActive)
+        else if (!receiveArgs.bActive && !transmitArgs.bActive)
         {
             if (receiveArgs.bStopped)
             {
