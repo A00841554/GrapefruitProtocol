@@ -128,7 +128,7 @@ void Application::fnSelectPort(std::string newPortName)
         mStringStream << "Must be in ";
         mStringStream << ApplicationConsts::ModeNames[validMode];
         mStringStream << " mode to change ports";
-        mStringStream << std::endl;
+        mStringStream << "\r\n";
 
     }
     else
@@ -142,17 +142,17 @@ void Application::fnSelectPort(std::string newPortName)
 
             case FAIL:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
-                mStringStream << " does not exist" << std::endl;
+                mStringStream << " does not exist" << "\r\n";
                 break;
 
             case SUCCESS:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
-                mStringStream << " selected" << std::endl;
+                mStringStream << " selected" << "\r\n";
                 break;
 
             case INVALID_OPERATION_FOR_STATE:
                 mStringStream << "Error changing ports; using serial port: ";
-                mStringStream << (*mPtrCommPort).fnGetPortName() << std::endl;
+                mStringStream << (*mPtrCommPort).fnGetPortName() << "\r\n";
                 break;
         }
     }
@@ -226,12 +226,12 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode)
         }
         mStringStream << "Now in ";
         mStringStream << ApplicationConsts::ModeNames[mMode];
-        mStringStream << " mode" << std::endl;
+        mStringStream << " mode" << "\r\n";
     }
     else
     {
         mStringStream << "Already in " << ApplicationConsts::ModeNames[mMode];
-        mStringStream << " mode" << std::endl;
+        mStringStream << " mode" << "\r\n";
     }
     (*mPtrTerminal).fnPrint(mStringStream.str());
 
@@ -298,7 +298,7 @@ void Application::fnConfigurePort(void)
         mStringStream << "Must be in ";
         mStringStream << ApplicationConsts::ModeNames[validMode];
         mStringStream << " mode to configure the port";
-        mStringStream << std::endl;
+        mStringStream << "\r\n";
 
     }
     else
@@ -311,19 +311,19 @@ void Application::fnConfigurePort(void)
             case SUCCESS:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
                 mStringStream << " configured";
-                mStringStream << std::endl;
+                mStringStream << "\r\n";
                 break;
 
             case FAIL:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
                 mStringStream << " configuration failed";
-                mStringStream << std::endl;
+                mStringStream << "\r\n";
                 break;
 
             case INVALID_OPERATION_FOR_STATE:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
                 mStringStream << " must be open to be configured";
-                mStringStream << std::endl;
+                mStringStream << "\r\n";
                 break;
         }
     }
@@ -369,7 +369,7 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
         mStringStream << "Must be in ";
         mStringStream << ApplicationConsts::ModeNames[validMode];
         mStringStream << " mode to send data";
-        mStringStream << std::endl;
+        mStringStream << "\r\n";
 
     }
     else
@@ -385,12 +385,12 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
 
             case FAIL:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
-                mStringStream << ": failed to send for unknown reason" << std::endl;
+                mStringStream << ": failed to send for unknown reason" << "\r\n";
                 break;
 
             case INVALID_OPERATION_FOR_STATE:
                 mStringStream << (*mPtrCommPort).fnGetPortName();
-                mStringStream << ": cannot send while port is closed" << std::endl;
+                mStringStream << ": cannot send while port is closed" << "\r\n";
                 break;
         }
     }
@@ -423,11 +423,10 @@ void Application::fnHelp(void)
 	
     // create & print things to a string stream
     std::stringstream mStringStream;
-    mStringStream << " Manual: \r\n";
-    mStringStream << "  > Select Port:        Select the Comm Port that is going to be used.\r\n";
-    mStringStream << "  > Configure Port:  Configures the Current Comm Port being used.\r\n";
-    mStringStream << "  > Clear Screen:    Clears the current status screen.\r\n";
-    mStringStream << "  > Change Mode:   Selects the mode in which you are going to operate.";
+    mStringStream << " Manual:    > Select Port:        Select the Comm Port that is going to be used.\r\n";
+    mStringStream << "                  > Configure Port:  Configures the Current Comm Port being used.\r\n";
+    mStringStream << "                  > Clear Screen:    Clears the current status screen.\r\n";
+    mStringStream << "                  > Change Mode:   Selects the mode in which you are going to operate.\r\n";
 
 	(*mPtrTerminal).fnClearScreen();
     (*mPtrTerminal).fnPrint(mStringStream.str());

@@ -376,15 +376,15 @@ void fnUpdateStats(const int iStat)
     string sStatistics;
 
     char cNumAck[21];// enough to hold all numbers up to 64-bits
-    sprintf(cNumAck, "%d", iAckSent);
+    sprintf_s(cNumAck, "%d", iAckSent);
     char cNumNak[21];
-    sprintf(cNumNak, "%d", iNakSent);
+    sprintf_s(cNumNak, "%d", iNakSent);
     char cNumInvPckts[21];
-    sprintf(cNumInvPckts, "%d", iInvalidPackets);
+    sprintf_s(cNumInvPckts, "%d", iInvalidPackets);
     char cNumPcktsSent[21];
-    sprintf(cNumPcktsSent, "%d", iPacketsSent);
+    sprintf_s(cNumPcktsSent, "%d", iPacketsSent);
     char cNumPcktsReceived[21];
-    sprintf(cNumPcktsReceived, "%d", iPacketsReceived);
+    sprintf_s(cNumPcktsReceived, "%d", iPacketsReceived);
     
     int iReceivedErrorRate = (iInvalidPackets == 0 ? 0 : (iPacketsReceived)/iInvalidPackets);
     char cReceivedErrorRate[21];
