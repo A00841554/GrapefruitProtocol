@@ -78,6 +78,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
         if(stReceive->bRequestStop == TRUE)
         {
             stReceive->bStopped = TRUE;
+            OutputDebugString("Receive thread stopped");
             return 0;
         }
         // Wait for event from the commport
@@ -163,6 +164,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                                 fnReceiveThreadActive(stReceive);
                             }
                             stReceive->bStopped = TRUE;
+                            OutputDebugString("Receive thread stopped");
                             return 0;
                         }
                     }
@@ -177,7 +179,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
                     // to issue another read until the first one finishes.
                     //
                     // This is a good time to do some background work.
-                    OutputDebugString("fnReceiveThreadIdle: WaitForSingleObject Timed out\n");
+                    //OutputDebugString("fnReceiveThreadIdle: WaitForSingleObject Timed out\n");
                     break;
 
                 default:
@@ -197,6 +199,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     }
 
     stReceive->bStopped = true;
+    OutputDebugString("Receive thread stopped");
     return 0;
 } // End of fnReceiveIdle
 
@@ -229,6 +232,13 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     char  strErrorBuffer[MAX_PATH+1] = {0};
 
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
+
+    // wait for transmit thread to stop before going full active
+    while(!stReceive->pTransmit->bStopped)
+    {
+        Sleep(SHORT_SLEEP);
+    }
+    OutputDebugString("Receive going full active");
 
     ClearCommError((*stReceive->pHCommPort), NULL, NULL);
     PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);

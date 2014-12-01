@@ -49,6 +49,13 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
     pTransmit->pReceive->bRequestStop = true;
 
+    // wait for receive thread to stop before going full active
+    while(!pTransmit->pReceive->bStopped)
+    {
+        Sleep(SHORT_SLEEP);
+    }
+    OutputDebugString("Transmit going full active");
+
     // bid for the line; send an ENQ or an RVI
     if(pTransmit->pReceive->bRVI)
     {
