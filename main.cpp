@@ -39,6 +39,7 @@
 #include "main.h"
 #include "application.h"
 #include "protocolparams.h"
+#include "timer.h"
 
 
 

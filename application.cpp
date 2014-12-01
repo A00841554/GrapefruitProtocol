@@ -380,6 +380,7 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
         {
 
             case SUCCESS:
+                SetEvent(controlArgs.hRequestTransmit);
                 break;
 
             case FAIL:
@@ -522,7 +523,7 @@ bool Application::fnStartControlThread(void)
     if (controlArgs.bStopped) {
         controlArgs.bRequestStop = false;
         controlArgs.bStopped = false;
-        // todo: change the nullptr to an actual transmit buffer
+        controlArgs.hRequestTransmit = CreateEvent(NULL, TRUE, FALSE, NULL);
         controlArgs.pTransmitBuffer = mPtrCommPort->fnGetTransmitBuffer();
         controlArgs.pHCommPort = mPtrCommPort->fnGetCommHandle();
 
