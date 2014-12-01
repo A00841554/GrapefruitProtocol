@@ -159,7 +159,7 @@ int main( void )
     hey.fnClockStop();
 
 	std::stringstream sstm;
-	sstm << hey.fnTimeElapsed() << std::endl;
+	sstm << hey.fnTimeElapsed() << "\r\n";
 	OutputDebugString(sstm.str().c_str());
 }
 */
