@@ -10,7 +10,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     if(pTransmit->bReset)
     {
         OutputDebugString("TransmitThread: Reset\n");
-        Sleep(rand() % MAX_RESET_TIMEOUT);
+        Sleep(rand() % (MAX_RESET_TIMEOUT - MIN_RESET_TIMEOUT) + MIN_RESET_TIMEOUT);
         pTransmit->bReset = false;
     }
 
