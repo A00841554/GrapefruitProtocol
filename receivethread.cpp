@@ -125,7 +125,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 
         if (bWaitRead) 
         {
-            switch(WaitForSingleObject(ov.hEvent, 500)) // Change timeout and put it somewhere
+            switch(WaitForSingleObject(ov.hEvent, SHORT_SLEEP)) // Change timeout and put it somewhere
             {
                 // Read completed.
                 case WAIT_OBJECT_0:
