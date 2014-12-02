@@ -606,8 +606,16 @@ int fnWaitForChar(
         }
         else
         {
-            DWORD newTimeout = timeout - timeoutTimer.fnTimeElapsed();
-            return fnWaitForChar(hCommPort, expectedChar, newTimeout);
+            timeoutTimer.fnClockStop();
+            if (timeout > timeoutTimer.fnTimeElapsed())
+            {
+                DWORD newTimeout = timeout - timeoutTimer.fnTimeElapsed();
+                return fnWaitForChar(hCommPort, expectedChar, newTimeout);
+            }
+            else
+            {
+                return ReadDataResult::TIMEDOUT;
+            }
         }
 
         case ReadDataResult::TIMEDOUT:
