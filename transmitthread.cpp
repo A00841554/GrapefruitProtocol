@@ -56,10 +56,6 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     }
     OutputDebugString("Transmit going full active\n");
 
-    //ClearCommError((*pTransmit->pHCommPort), NULL, NULL);
-    //PurgeComm((*pTransmit->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
-
-
     // bid for the line; send an ENQ or an RVI
     if(pTransmit->pReceive->bRVI)
     {
