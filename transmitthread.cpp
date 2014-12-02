@@ -70,6 +70,9 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     // wait for ACK before transmitting; if we fail (usually by timing out),
     // bail out
     int result = fnWaitForChar(*pTransmit->pHCommPort, ACK, TIMEOUT_AFTER_T_ENQ);
+    std::stringstream sstm;
+    sstm << "fnWaitForCharResult: " << result << std::endl;
+    OutputDebugString(sstm.str().c_str());
     if(result != ReadDataResult::SUCCESS)
     {
         _TransmitThread_::fnReset(pTransmit);
