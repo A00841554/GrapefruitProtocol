@@ -57,8 +57,8 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     BOOL bWaitRead = false;
 
     char  cRead;
-    char strOutputDebugBuffer[MAX_PATH+1] = {0};
-    char strErrorBuffer[MAX_PATH+1] = {0};
+    char strOutputDebugBuffer[2048+1] = {0};
+    char strErrorBuffer[2048+1] = {0};
 
     // Set receive structure
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
@@ -227,9 +227,9 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
 {
 
     DWORD dwRead;
-    char  cRead[1024 + 1] = {0};
+    char  cRead[PACKET_SIZE + 1] = {0};
     char  strOutputDebugBuffer[2048] = {0};
-    char  strErrorBuffer[MAX_PATH+1] = {0};
+    char  strErrorBuffer[2048+1] = {0};
 
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
