@@ -16,10 +16,10 @@ const char ENQ  = char('E');//5
 const int SHORT_SLEEP                   = 100;
 const int MAX_MISS                      = 3;
 const int MAX_SENT                      = 10;
-const int MAX_RESET_TIMEOUT             = 1000;
+const int MAX_RESET_TIMEOUT             = 10000;
 const int CONTROL_THREAD_SLEEP_INTERVAL = 250;
-const int TIMEOUT_AFTER_T_ENQ           = 10000;
-const int TIMEOUT_AFTER_T_PACKET        = 10000;
+const int TIMEOUT_AFTER_T_ENQ           = 3000;
+const int TIMEOUT_AFTER_T_PACKET        = 3000;
 
 // packets
 const int HEADER_SIZE    = 2;
