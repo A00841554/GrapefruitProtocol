@@ -92,6 +92,10 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                         expectedChars, sizeof(expectedChars),
                         TIMEOUT_AFTER_T_PACKET);
 
+            std::stringstream sstm;
+            sstm << "received: " << byReceivedChar << " result: " << result;
+            OutputDebugString(sstm.str().c_str());
+
             // we received an ack, discard the packet because we don't need to retransmit it anymore
             if (result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
             {
