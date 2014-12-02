@@ -245,8 +245,8 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     }
     OutputDebugString("Receive going full active\n");
 
-    ClearCommError((*stReceive->pHCommPort), NULL, NULL);
-    PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+    //ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+    //PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 
     OVERLAPPED ov;
     memset(&ov, 0, sizeof(OVERLAPPED));
@@ -379,8 +379,8 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                 OutputDebugString("fnReceiveThreadActive:" 
                                   "WaitForSingleObject Timed out\n");
                 // Purge all data curently in the overlapped structure
-                ClearCommError((*stReceive->pHCommPort), NULL, NULL);
-                PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+                //ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+                //PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 
                 CloseHandle(ov.hEvent); // Close handle for event
 
