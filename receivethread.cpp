@@ -366,7 +366,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                         // exit receive thread if EOT or we want to RVI
                         if(bDuplicate || stReceive->bRVI == true || fnIsEOT(cRead)) 
                         {
-                            fnProcessData("\r\n----------------------\r\n");
+                            fnProcessData("HH\r\n----------------------\r\n");
                             break;
                         }
                     }
