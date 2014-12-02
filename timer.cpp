@@ -138,7 +138,7 @@ void Timer::fnClockStop()
  */
 int Timer::fnTimeElapsed()
 {
-    if (bStarted) 
+    if (!bStarted) 
         return ( tStop - tStart ) / TICKS_PER_MILLISECOND;
     else
         return ( std::clock() - tStart ) / TICKS_PER_MILLISECOND;
