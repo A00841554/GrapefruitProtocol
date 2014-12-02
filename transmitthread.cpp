@@ -108,7 +108,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 fnSentData(pSCurrPacket);
                 fnDropHeadPacketData(pTransmit);
                 if(fnIsEOT(pSCurrPacket))
-                    fnProcessData("HH\r\n----------------------\r\n");
+                    fnSentData("HH\r\n----------------------\r\n");
             }
 
             // check for reset conditions
