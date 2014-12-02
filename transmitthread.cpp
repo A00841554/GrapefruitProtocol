@@ -34,6 +34,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
         Sleep(SHORT_SLEEP);
     }
 
+    OutputDebugString("TransmitThread: Stopped\n");
     return 0;
 }
 
@@ -54,7 +55,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     {
         Sleep(SHORT_SLEEP);
     }
-    OutputDebugString("Transmit going full active");
+    OutputDebugString("Transmit going full active\n");
 
     ClearCommError((*pTransmit->pHCommPort), NULL, NULL);
     PurgeComm((*pTransmit->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
@@ -156,7 +157,6 @@ void _TransmitThread_::fnReset(TransmitArgs* pTransmit)
 
 void _TransmitThread_::fnStop(TransmitArgs* pTransmit)
 {
-    OutputDebugString("TransmitThread: Stopped\n");
     pTransmit->bActive = false;
     pTransmit->bStopped = true;
 }
