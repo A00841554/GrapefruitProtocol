@@ -181,9 +181,9 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             "EDIT",                             // String or Class name from the Register class
             "",                                 // Window name
             WS_CHILD | WS_VSCROLL |
-            WS_HSCROLL | WS_VISIBLE |
+            WS_VISIBLE |
             ES_MULTILINE | ES_READONLY |
-            ES_AUTOHSCROLL | ES_AUTOVSCROLL,    // Style
+            ES_AUTOVSCROLL,    // Style
             rect.left + 20,                     // Initial horizontal position
             rect.top + 20,                      // Initial vertical position
             leftWidth,                          // width
@@ -205,7 +205,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         HWND hwndRight = CreateWindowEx (WS_EX_CLIENTEDGE,
             "EDIT",                             // String or Class name from the Register class
             "",                                 // Window name
-            WS_CHILD | WS_VSCROLL | WS_HSCROLL |WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOHSCROLL | ES_AUTOVSCROLL,   // Style
+            WS_CHILD | WS_VSCROLL | WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // Style
             rect.left + 20 + 15 + leftWidth,           // Initial horizontal position
             rect.top + 20,                        // Initial vertical position
             rightWidth,                           // width

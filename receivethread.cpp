@@ -333,7 +333,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                     OutputDebugString(strOutputDebugBuffer);
 
                     // To test received chars
-                    fnProcessData(cRead);
+                    //fnProcessData(cRead);
                     fnUpdateStats(STATS_PCKT_RECEIVED);
 
                     // Check data if valid; bail if invalid
