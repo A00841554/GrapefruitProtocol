@@ -106,6 +106,12 @@ class Application
         /** structure passed to the control thread */
         ControlArgs controlArgs;
 
+        /** structure passed to the transmit thread */
+        TransmitArgs transmitArgs;
+    
+        /** structure passed to the receive thread */
+        ReceiveArgs receiveArgs;
+
         /** mode of the Application; it can be CONNECT, or COMMAND */
         ApplicationConsts::Mode mMode;
 

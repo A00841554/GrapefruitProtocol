@@ -11,31 +11,33 @@ struct ReceiveArgs;
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
 {
-    BOOL bRequestStop;  // true to request the thread to stop
-    BOOL bStopped;      // true if thread is stopped; false otherwise
-    BOOL bActive;       // true if thread is in its "active" state
+    HANDLE hRequestStop;    // true to request the thread to stop
+    BOOL bStopped;          // true if thread is stopped; false otherwise
 
-    BOOL bReset;        // true if state of transmit thread should be "reset"
-    BOOL bSYN1;         // true if current data us SYN1
+    HANDLE hRequestActive;  // true to request the thread to become active
+    BOOL bActive;           // true if thread is in its "active" state
+
+    BOOL bReset;            // true if state of transmit thread should be "reset"
+    BOOL bSYN1;             // true if current data us SYN1
 
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
-    HANDLE* pHCommPort;    // reference to serial port
+    HANDLE* pHCommPort;     // reference to serial port
 };
 
 /** structure passed to receive thread as thread arguments. */
 struct ReceiveArgs
 {
-    BOOL bRequestStop;  // true to request the thread to stop
-    BOOL bStopped;      // true if thread is stopped; false otherwise
-    BOOL bActive;       // true if thread is in its "active" state
+    BOOL bRequestStop;      // true to request the thread to stop
+    BOOL bStopped;          // true if thread is stopped; false otherwise
+    BOOL bActive;           // true if thread is in its "active" state
 
-    BOOL bRVI;          // true to send an RVI & switch into transmit mode
-    BOOL bSYN1;         // true if current data us SYN1
+    BOOL bRVI;              // true to send an RVI & switch into transmit mode
+    BOOL bSYN1;             // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
-    HANDLE* pHCommPort;    // reference to serial port
+    HANDLE* pHCommPort;     // reference to serial port
 };
 
 /** structure passed to the control thread as thread arguments. */
@@ -43,7 +45,9 @@ struct ControlArgs
 {
     BOOL bRequestStop;  // true to request the thread to stop
     BOOL bStopped;      // true if thread is stopped; false otherwise
-    HANDLE hRequestTransmit;// raised to activate the transmit thread to send data
+
+    TransmitArgs* pTransmit;
+    ReceiveArgs* pReceive;
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
     HANDLE* pHCommPort;     // reference to serial port

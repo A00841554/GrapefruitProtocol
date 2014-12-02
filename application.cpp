@@ -191,31 +191,32 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode)
     std::stringstream mStringStream;
     bool failedToChangeModes = false;
 
-    // do whatever you need to do, before changing modes
-    switch (mMode)
-    {
-        case ApplicationConsts::Mode::COMMAND:
-            // nothing to do
-            break;
-        case ApplicationConsts::Mode::CONNECT:
-            fnStopControlThread();
-            break;
-    }
-
-    // do whatever you need to do, after changing modes
-    switch (newMode)
-    {
-        case ApplicationConsts::Mode::COMMAND:
-            // nothing to do
-            break;
-        case ApplicationConsts::Mode::CONNECT:
-            failedToChangeModes = !fnStartControlThread();
-            break;
-    }
-
     // change to the new mode
     if (mMode != newMode)
     {
+
+        // do whatever you need to do, before changing modes
+        switch (mMode)
+        {
+            case ApplicationConsts::Mode::COMMAND:
+                // nothing to do
+                break;
+            case ApplicationConsts::Mode::CONNECT:
+                fnStopControlThread();
+                break;
+        }
+
+        // do whatever you need to do, after changing modes
+        switch (newMode)
+        {
+            case ApplicationConsts::Mode::COMMAND:
+                // nothing to do
+                break;
+            case ApplicationConsts::Mode::CONNECT:
+                failedToChangeModes = !fnStartControlThread();
+                break;
+        }
+
         if (!failedToChangeModes)
         {
             mMode = newMode;
@@ -380,7 +381,7 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
         {
 
             case SUCCESS:
-                SetEvent(controlArgs.hRequestTransmit);
+                SetEvent(controlArgs.pTransmit->hRequestActive);
                 break;
 
             case FAIL:
@@ -420,7 +421,7 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
  */
 void Application::fnHelp(void)
 {
-	
+
     // create & print things to a string stream
     std::stringstream mStringStream;
     mStringStream << " Manual:    > Select Port:        Select the Comm Port that is going to be used.\r\n";
@@ -520,14 +521,37 @@ void Application::fnOnReceive(char c)
 bool Application::fnStartControlThread(void)
 {
     if (controlArgs.bStopped) {
+
+        // initialize control thread structure
         controlArgs.bRequestStop = false;
         controlArgs.bStopped = false;
-        controlArgs.hRequestTransmit = CreateEvent(NULL, TRUE, FALSE, NULL);
         controlArgs.pTransmitBuffer = mPtrCommPort->fnGetTransmitBuffer();
         controlArgs.pHCommPort = mPtrCommPort->fnGetCommHandle();
+        controlArgs.pTransmit = &transmitArgs;
+        controlArgs.pReceive = &receiveArgs;
 
+        // initialize transmit thread structure
+        transmitArgs.hRequestStop    = CreateEvent(NULL, TRUE, FALSE, NULL);
+        transmitArgs.bStopped        = true;
+        transmitArgs.hRequestActive  = CreateEvent(NULL, TRUE, FALSE, NULL);
+        transmitArgs.bActive         = false;
+        transmitArgs.bReset          = false;
+        transmitArgs.bSYN1           = true;
+        transmitArgs.pReceive        = &receiveArgs;
+        transmitArgs.pTransmitBuffer = controlArgs.pTransmitBuffer;
+        transmitArgs.pHCommPort      = controlArgs.pHCommPort;
+
+        // initialize receive thread structures
+        receiveArgs.bRequestStop = false;
+        receiveArgs.bStopped     = true;
+        receiveArgs.bActive      = false;
+        receiveArgs.bRVI         = false;
+        receiveArgs.bSYN1        = false;
+        receiveArgs.pTransmit    = &transmitArgs;
+        receiveArgs.pHCommPort   = controlArgs.pHCommPort;
+
+        // start the control thread
         DWORD threadId;
-
         CreateThread(NULL, 0, fnControl, &controlArgs, 0, &threadId);
     }
 

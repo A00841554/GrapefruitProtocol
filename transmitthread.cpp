@@ -2,8 +2,6 @@
 
 DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 {
-    using namespace std;
-
     TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
 
     // reset state to delay sending ENQ
@@ -16,21 +14,21 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 
     // check for data to send, or a request to stop
     OutputDebugString("TransmitThread: Idle\n");
-    while(true)
+    HANDLE handles[] = {pTransmit->hRequestStop, pTransmit->hRequestActive};
+    DWORD result = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+    switch(result)
     {
-        if(pTransmit->bRequestStop)
-        {
+        case WAIT_OBJECT_0+0:
             _TransmitThread_::fnStop(pTransmit);
             break;
-        }
-
-        if(!pTransmit->pTransmitBuffer->empty()) 
-        {
+        case WAIT_OBJECT_0+1:
             _TransmitThread_::fnGoActive(pTransmit);
             break;
-        }
-        
-        Sleep(SHORT_SLEEP);
+        default:
+            DWORD err = GetLastError();
+            OutputDebugString("Something went wrong...\n");
+            _TransmitThread_::fnStop(pTransmit);
+            break;
     }
 
     OutputDebugString("TransmitThread: Stopped\n");
@@ -70,11 +68,6 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     // wait for ACK before transmitting; if we fail (usually by timing out),
     // bail out
     int result = fnWaitForChar(*pTransmit->pHCommPort, ACK, TIMEOUT_AFTER_T_ENQ);
-    {
-        std::stringstream sstm;
-        sstm << "fnWaitForCharResult: " << result << std::endl;
-        OutputDebugString(sstm.str().c_str());
-    }
     if(result != ReadDataResult::SUCCESS)
     {
         _TransmitThread_::fnReset(pTransmit);
@@ -98,17 +91,25 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                         TIMEOUT_AFTER_T_PACKET);
 
             std::stringstream sstm;
-            sstm << "received: " << byReceivedChar << " result: " << result;
+            sstm << "received: " << byReceivedChar << " result: " << result << std::endl;
             OutputDebugString(sstm.str().c_str());
 
-            // we received an ack, discard the packet because we don't need to retransmit it anymore
-            if (result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
+            // we received an ack, discard the sent data because we don't need to retransmit it anymore
+            if(result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
             {
+                // update stats, and the UI
                 fnUpdateStats(STATS_PCKT_SENT);
                 fnSentData(pSCurrPacket);
-                fnDropHeadPacketData(pTransmit);
                 if(fnIsEOT(pSCurrPacket))
                     fnSentData("HH\r\n----------------------\r\n");
+
+                // sent data has been acked; remove it & if there are no more data to send, reset our
+                // request to go active flag
+                fnDropHeadPacketData(pTransmit);
+                if (pTransmit->pTransmitBuffer->empty())
+                {
+                    ResetEvent(pTransmit->hRequestActive);
+                }
             }
 
             // check for reset conditions
@@ -117,27 +118,27 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
                 _TransmitThread_::fnReset(pTransmit);
-                return 0;
+                return 0;   // gtfo we're done here
             }
 
             // check for retransmit conditions
             else if ((result == ReadDataResult::TIMEDOUT || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
             {
                 nPacketsMiss++;
-                continue;
+                continue;   // retransmit
             }
 
             // break out of retransmission loop, and transmit the next packet
             else if (byReceivedChar == ACK && fnIsETB(pSCurrPacket))
             {
-                break;
+                break;      // transmit next packet
             }
 
             // check for RVI condition
             else if (byReceivedChar == RVI)
             {
                 _TransmitThread_::fnStop(pTransmit);
-                return 0;
+                return 0;   // gtfo we're done here
             }
         }
     }

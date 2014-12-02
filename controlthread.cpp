@@ -4,32 +4,13 @@
 
 DWORD WINAPI fnControl(LPVOID args)
 {
+
+    OutputDebugString("Control thread started\n");
+    
     // parse thread parameters
     ControlArgs* controlArgs = (ControlArgs*) args;
-    OutputDebugString("Control thread started\n");
-
-    // create transmit and receive structures
-    TransmitArgs transmitArgs;
-    ReceiveArgs receiveArgs;
-
-    // initialize transmit structure
-    transmitArgs.bRequestStop    = false;
-    transmitArgs.bStopped        = true;
-    transmitArgs.bActive         = false;
-    transmitArgs.bReset          = false;
-    transmitArgs.bSYN1           = true;
-    transmitArgs.pReceive        = &receiveArgs;
-    transmitArgs.pTransmitBuffer = controlArgs->pTransmitBuffer;
-    transmitArgs.pHCommPort      = controlArgs->pHCommPort;
-
-    // initialize receive thread structures
-    receiveArgs.bRequestStop = false;
-    receiveArgs.bStopped     = true;
-    receiveArgs.bActive      = false;
-    receiveArgs.bRVI         = false;
-    receiveArgs.bSYN1        = false;
-    receiveArgs.pTransmit    = &transmitArgs;
-    receiveArgs.pHCommPort   = controlArgs->pHCommPort;
+    TransmitArgs* pTransmitArgs = controlArgs->pTransmit;
+    ReceiveArgs* pReceiveArgs = controlArgs->pReceive;
 
     // enter main control loop
     while (true)
@@ -37,10 +18,10 @@ DWORD WINAPI fnControl(LPVOID args)
         // exit look if we're supposed to stop
         if (controlArgs->bRequestStop) {
             OutputDebugString("Control thread stopping\n");
-            receiveArgs.bRequestStop = true;
-            transmitArgs.bRequestStop = true;
+            pReceiveArgs->bRequestStop = true;
+            SetEvent(pTransmitArgs->hRequestStop);
 
-            if (receiveArgs.bStopped && transmitArgs.bStopped)
+            if (pReceiveArgs->bStopped && pTransmitArgs->bStopped)
             {
                 OutputDebugString("Control thread stopped\n");
                 controlArgs->bStopped = true;
@@ -50,28 +31,28 @@ DWORD WINAPI fnControl(LPVOID args)
 
         // restart any threads that are stopped if the state of both threads are
         // not active
-        else if (!receiveArgs.bActive && !transmitArgs.bActive)
+        else if (!pReceiveArgs->bActive && !pTransmitArgs->bActive)
         {
-            if (receiveArgs.bStopped)
+            if (pReceiveArgs->bStopped)
             {
-                receiveArgs.bRequestStop = false;
-                receiveArgs.bStopped = false;
+                pReceiveArgs->bRequestStop = false;
+                pReceiveArgs->bStopped = false;
                 DWORD threadId;
-                CreateThread(NULL, 0, fnReceiveThreadIdle, &receiveArgs, 0,
+                CreateThread(NULL, 0, fnReceiveThreadIdle, pReceiveArgs, 0,
                         &threadId);
             }
-            if (transmitArgs.bStopped)
+            if (pTransmitArgs->bStopped)
             {
-                transmitArgs.bRequestStop = false;
-                transmitArgs.bStopped = false;
+                ResetEvent(pTransmitArgs->hRequestStop);
+                pTransmitArgs->bStopped = false;
                 DWORD threadId;
-                CreateThread(NULL, 0, fnTransmitIdle, &transmitArgs, 0,
+                CreateThread(NULL, 0, fnTransmitIdle, pTransmitArgs, 0,
                         &threadId);
             }
         }
 
         // sleep so we don't burn out the core
-        Sleep(CONTROL_THREAD_SLEEP_INTERVAL);
+        Sleep(SHORT_SLEEP);
     }
 }
 

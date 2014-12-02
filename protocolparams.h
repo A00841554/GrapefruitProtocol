@@ -2,29 +2,28 @@
 #define _PROTOCOLPARAMS_H_
 
 // control characters
-const char EOT  = 4;
-const char ETB  = 23;
-const char ETX  = 3;
-const char SYN1 = 18;
-const char SYN2 = 19;
-const char ACK  = 6;
-const char NAK  = 21;
-const char RVI  = 17;
-const char ENQ  = 5;
+const char EOT  = char('F');    // 4;
+const char ETB  = char('C');    // 23;
+const char ETX  = char('X');    // 3;
+const char SYN1 = char('S');    // 18;
+const char SYN2 = char('Z');    // 19;
+const char ACK  = char('A');    // 6;
+const char NAK  = char('N');    // 21;
+const char RVI  = char('R');    // 17;
+const char ENQ  = char('E');    // 5;
 
 // timeouts & retry counts
 const int SHORT_SLEEP                   = 100;
 const int MAX_MISS                      = 3;
 const int MAX_SENT                      = 10;
-const int MAX_RESET_TIMEOUT             = 3000;
+const int MAX_RESET_TIMEOUT             = 5000;
 const int MIN_RESET_TIMEOUT             = 1000;
-const int CONTROL_THREAD_SLEEP_INTERVAL = 250;
-const int TIMEOUT_AFTER_T_ENQ           = 1000;
-const int TIMEOUT_AFTER_T_PACKET        = 1000;
+const int TIMEOUT_AFTER_T_ENQ           = 3000; // milliseconds to wait after transmitting an ENQ
+const int TIMEOUT_AFTER_T_PACKET        = 3000; // milliseconds to wait after transmitting a packet
 
 // packets
 const int HEADER_SIZE    = 2;
-const int DATA_SIZE      = 100;//1018;
+const int DATA_SIZE      = 10;//1018;
 const int VALIDTION_SIZE = 4; //32 bits
 const int PACKET_SIZE    = HEADER_SIZE + DATA_SIZE + VALIDTION_SIZE;
 

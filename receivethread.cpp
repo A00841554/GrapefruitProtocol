@@ -47,8 +47,6 @@
  */
 DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 {
-    // TO DO readIdle
-    // Clear receive buffer
 
     DWORD dwRead;
     DWORD dwErr;
@@ -63,8 +61,9 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     // Set receive structure
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
     
-    //ClearCommError((*stReceive->pHCommPort), NULL, NULL);
-    //PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+    // clear receive buffer
+    ClearCommError((*stReceive->pHCommPort), NULL, NULL);
+    PurgeComm((*stReceive->pHCommPort), PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 
     // set up overlapped structure
     OVERLAPPED ov;
@@ -234,7 +233,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
     // stop the transmit thread
-    (stReceive->pTransmit)->bRequestStop = TRUE;
+    SetEvent(stReceive->pTransmit->hRequestStop);
 
     OutputDebugString("Before Receive going full active\n");
     // wait for transmit thread to stop before going full active

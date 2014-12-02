@@ -452,4 +452,6 @@ int CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)
 	{
         transmitBuffer.push_back(pBuffer[i]);
 	}
+
+    return SUCCESS;
 }
