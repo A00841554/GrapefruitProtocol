@@ -108,6 +108,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             // we received an ack, discard the packet because we don't need to retransmit it anymore
             if (result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
             {
+                fnUpdateStats(STATS_PCKT_SENT);
                 fnSentData(pSCurrPacket);
                 fnDropHeadPacketData(pTransmit);
             }
