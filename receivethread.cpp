@@ -234,7 +234,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     ReceiveArgs * stReceive = (ReceiveArgs*) lpArg;
 
     // stop the transmit thread
-    (stReceive->pTransmit)->bStopped = TRUE;
+    (stReceive->pTransmit)->bRequestStop = TRUE;
 
     OutputDebugString("Before Receive going full active\n");
     // wait for transmit thread to stop before going full active
