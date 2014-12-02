@@ -118,6 +118,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
+                fnProcessData("HH\r\n----------------------\r\n");
                 _TransmitThread_::fnReset(pTransmit);
                 return 0;
             }
