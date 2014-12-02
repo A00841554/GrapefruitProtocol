@@ -24,7 +24,7 @@ const int TIMEOUT_AFTER_T_PACKET        = 1000;
 
 // packets
 const int HEADER_SIZE    = 2;
-const int DATA_SIZE      = 1018;//1018;
+const int DATA_SIZE      = 100;//1018;
 const int VALIDTION_SIZE = 4; //32 bits
 const int PACKET_SIZE    = HEADER_SIZE + DATA_SIZE + VALIDTION_SIZE;
 
