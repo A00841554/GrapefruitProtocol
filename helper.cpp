@@ -593,36 +593,30 @@ int fnWaitForChar(
     char readChar;
 
     timeoutTimer.fnClockStart();
-    switch(fnReadData(hCommPort, &readChar, 1, timeout))
+    while(timeoutTimer.fnTimeElapsed() < timeout)
     {
-
-        case ReadDataResult::ERR:
-        return ReadDataResult::ERR;
-
-        case ReadDataResult::SUCCESS:
-        if(readChar == expectedChar)
+        switch(fnReadData(hCommPort, &readChar, 1, timeout - timeoutTimer.fnTimeElapsed()))
         {
-            return ReadDataResult::SUCCESS;
-        }
-        else
-        {
-            timeoutTimer.fnClockStop();
-            if (timeout > timeoutTimer.fnTimeElapsed())
+
+            case ReadDataResult::ERR:
+            return ReadDataResult::ERR;
+
+            case ReadDataResult::SUCCESS:
+            if(readChar == expectedChar)
             {
-                DWORD newTimeout = timeout - timeoutTimer.fnTimeElapsed();
-                return fnWaitForChar(hCommPort, expectedChar, newTimeout);
+                return ReadDataResult::SUCCESS;
             }
             else
             {
-                return ReadDataResult::TIMEDOUT;
+                continue;
             }
-        }
 
-        case ReadDataResult::TIMEDOUT:
-        return ReadDataResult::TIMEDOUT;
+            case ReadDataResult::TIMEDOUT:
+            return ReadDataResult::TIMEDOUT;
 
-        case ReadDataResult::FAIL:
-        return ReadDataResult::FAIL;
+            case ReadDataResult::FAIL:
+            return ReadDataResult::FAIL;
+        }   
     }
     return 0;
 }
