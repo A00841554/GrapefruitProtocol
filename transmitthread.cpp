@@ -111,6 +111,8 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 fnUpdateStats(STATS_PCKT_SENT);
                 fnSentData(pSCurrPacket);
                 fnDropHeadPacketData(pTransmit);
+                if(fnIsEOT(pSCurrPacket))
+                    fnProcessData("HH\r\n----------------------\r\n");
             }
 
             // check for reset conditions
@@ -118,7 +120,6 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
                 (result != ReadDataResult::TIMEDOUT && byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
             {
-                fnProcessData("HH\r\n----------------------\r\n");
                 _TransmitThread_::fnReset(pTransmit);
                 return 0;
             }
