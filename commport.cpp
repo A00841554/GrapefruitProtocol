@@ -437,9 +437,9 @@ TransmitBuffer* CommPort::fnGetTransmitBuffer(void)
     return &transmitBuffer;
 }
 
-HANDLE* CommPort::fnGetCommHandle(void)
+HANDLE CommPort::fnGetCommHandle(void)
 {
-    return &mHComm;
+    return mHComm;
 }
 
 int CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)

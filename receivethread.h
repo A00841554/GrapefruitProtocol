@@ -20,10 +20,22 @@
  * @note         none
  */
 
-#include<stdio.h>
+#ifndef _RECEIVETHREAD_H_
+#define _RECEIVETHREAD_H_
+
+#include <assert.h>
+#include <stdio.h>
 #include "controlthread.h"
 #include "commport.h"
 #include "helper.h"
 
 DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg);
 DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg);
+
+namespace _ReceiveThread_
+{
+    void fnGoActive(ReceiveArgs* pTransmit);
+    void fnStop(ReceiveArgs* pTransmit);
+}
+
+#endif

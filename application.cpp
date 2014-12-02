@@ -523,12 +523,12 @@ bool Application::fnStartControlThread(void)
     if (controlArgs.bStopped) {
 
         // initialize control thread structure
-        controlArgs.bRequestStop = false;
-        controlArgs.bStopped = false;
-        controlArgs.pTransmitBuffer = mPtrCommPort->fnGetTransmitBuffer();
-        controlArgs.pHCommPort = mPtrCommPort->fnGetCommHandle();
-        controlArgs.pTransmit = &transmitArgs;
-        controlArgs.pReceive = &receiveArgs;
+        controlArgs.bRequestStop     = false;
+        controlArgs.bStopped         = false;
+        controlArgs.pTransmitBuffer  = mPtrCommPort->fnGetTransmitBuffer();
+        controlArgs.hCommPort        = mPtrCommPort->fnGetCommHandle();
+        controlArgs.pTransmit        = &transmitArgs;
+        controlArgs.pReceive         = &receiveArgs;
 
         // initialize transmit thread structure
         transmitArgs.hRequestStop    = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -539,16 +539,16 @@ bool Application::fnStartControlThread(void)
         transmitArgs.bSYN1           = true;
         transmitArgs.pReceive        = &receiveArgs;
         transmitArgs.pTransmitBuffer = controlArgs.pTransmitBuffer;
-        transmitArgs.pHCommPort      = controlArgs.pHCommPort;
+        transmitArgs.hCommPort       = controlArgs.hCommPort;
 
         // initialize receive thread structures
-        receiveArgs.bRequestStop = false;
-        receiveArgs.bStopped     = true;
-        receiveArgs.bActive      = false;
-        receiveArgs.bRVI         = false;
-        receiveArgs.bSYN1        = false;
-        receiveArgs.pTransmit    = &transmitArgs;
-        receiveArgs.pHCommPort   = controlArgs.pHCommPort;
+        receiveArgs.hRequestStop     = CreateEvent(NULL, TRUE, FALSE, NULL);
+        receiveArgs.bStopped         = true;
+        receiveArgs.bActive          = false;
+        receiveArgs.bRVI             = false;
+        receiveArgs.bSYN1            = false;
+        receiveArgs.pTransmit        = &transmitArgs;
+        receiveArgs.hCommPort        = controlArgs.hCommPort;
 
         // start the control thread
         DWORD threadId;

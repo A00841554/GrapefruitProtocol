@@ -16,14 +16,15 @@ const char ENQ  = char('E');    // 5;
 const int SHORT_SLEEP                   = 100;
 const int MAX_MISS                      = 3;
 const int MAX_SENT                      = 10;
-const int MAX_RESET_TIMEOUT             = 5000;
-const int MIN_RESET_TIMEOUT             = 1000;
-const int TIMEOUT_AFTER_T_ENQ           = 3000; // milliseconds to wait after transmitting an ENQ
-const int TIMEOUT_AFTER_T_PACKET        = 3000; // milliseconds to wait after transmitting a packet
+const int MAX_RESET_TIMEOUT             = 2000;
+const int MIN_RESET_TIMEOUT             = 250;
+const int TIMEOUT_AFTER_T_ENQ           = 1000; // milliseconds to wait after transmitting an ENQ
+const int TIMEOUT_AFTER_T_PACKET        = 2000; // milliseconds to wait after transmitting a packet
+const int TIMEOUT_AFTER_R_ENQ           = 2000; // milliseconds to wait after receiving an ENQ
 
 // packets
 const int HEADER_SIZE    = 2;
-const int DATA_SIZE      = 10;//1018;
+const int DATA_SIZE      = 1018;
 const int VALIDTION_SIZE = 4; //32 bits
 const int PACKET_SIZE    = HEADER_SIZE + DATA_SIZE + VALIDTION_SIZE;
 

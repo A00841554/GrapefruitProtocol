@@ -11,7 +11,7 @@ struct ReceiveArgs;
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
 {
-    HANDLE hRequestStop;    // true to request the thread to stop
+    HANDLE hRequestStop;    // signaled to request the thread to stop
     BOOL bStopped;          // true if thread is stopped; false otherwise
 
     HANDLE hRequestActive;  // true to request the thread to become active
@@ -23,13 +23,13 @@ struct TransmitArgs
     ReceiveArgs* pReceive;  // pointer to receive thread parameters
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
-    HANDLE* pHCommPort;     // reference to serial port
+    HANDLE hCommPort;       // reference to serial port
 };
 
 /** structure passed to receive thread as thread arguments. */
 struct ReceiveArgs
 {
-    BOOL bRequestStop;      // true to request the thread to stop
+    HANDLE hRequestStop;    // signaled to request the thread to stop
     BOOL bStopped;          // true if thread is stopped; false otherwise
     BOOL bActive;           // true if thread is in its "active" state
 
@@ -37,7 +37,7 @@ struct ReceiveArgs
     BOOL bSYN1;             // true if current data us SYN1
 
     TransmitArgs* pTransmit;    // pointer to transmit thread parameters
-    HANDLE* pHCommPort;     // reference to serial port
+    HANDLE hCommPort;       // reference to serial port
 };
 
 /** structure passed to the control thread as thread arguments. */
@@ -50,7 +50,7 @@ struct ControlArgs
     ReceiveArgs* pReceive;
 
     TransmitBuffer* pTransmitBuffer; // pointer to transmit buffer
-    HANDLE* pHCommPort;     // reference to serial port
+    HANDLE hCommPort;    // reference to serial port
 };
 
 DWORD WINAPI fnControl(LPVOID args);

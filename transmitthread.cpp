@@ -19,16 +19,25 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     switch(result)
     {
         case WAIT_OBJECT_0+0:
+        {
             _TransmitThread_::fnStop(pTransmit);
             break;
+        }
         case WAIT_OBJECT_0+1:
-            _TransmitThread_::fnGoActive(pTransmit);
+        {
+            if(!pTransmit->pReceive->bActive)
+                _TransmitThread_::fnGoActive(pTransmit);
+            else
+                _TransmitThread_::fnStop(pTransmit);
             break;
+        }
         default:
+        {
             DWORD err = GetLastError();
             OutputDebugString("Something went wrong...\n");
             _TransmitThread_::fnStop(pTransmit);
             break;
+        }
     }
 
     OutputDebugString("TransmitThread: Stopped\n");
@@ -45,29 +54,30 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     short nPacketsMiss;
     char* pSCurrPacket;
 
-    pTransmit->pReceive->bRequestStop = true;
+    // stop the receive thread
+    SetEvent(pTransmit->pReceive->hRequestStop);
 
     // wait for receive thread to stop before going full active
     while(!pTransmit->pReceive->bStopped)
     {
         Sleep(SHORT_SLEEP);
     }
-    OutputDebugString("Transmit going full active\n");
+    OutputDebugString("TransmitThread: Full Active\n");
 
     // bid for the line; send an ENQ or an RVI
     if(pTransmit->pReceive->bRVI)
     {
-        fnSendData(RVI, (*pTransmit->pHCommPort));
+        fnSendData(RVI, pTransmit->hCommPort);
         pTransmit->pReceive->bRVI = false;
     }
     else
     {
-        fnSendData(ENQ, *pTransmit->pHCommPort);
+        fnSendData(ENQ, pTransmit->hCommPort);
     }
 
     // wait for ACK before transmitting; if we fail (usually by timing out),
     // bail out
-    int result = fnWaitForChar(*pTransmit->pHCommPort, ACK, TIMEOUT_AFTER_T_ENQ);
+    int result = fnWaitForChar(pTransmit->hCommPort, ACK, TIMEOUT_AFTER_T_ENQ);
     if(result != ReadDataResult::SUCCESS)
     {
         _TransmitThread_::fnReset(pTransmit);
@@ -84,9 +94,9 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
         while(true)
         {
-            fnSendData(pSCurrPacket, *(pTransmit->pHCommPort));
+            fnSendData(pSCurrPacket, pTransmit->hCommPort);
             char expectedChars[] = {ACK, NAK, RVI};
-            int result = fnWaitForChars(*pTransmit->pHCommPort, &byReceivedChar,
+            int result = fnWaitForChars(pTransmit->hCommPort, &byReceivedChar,
                         expectedChars, sizeof(expectedChars),
                         TIMEOUT_AFTER_T_PACKET);
 
@@ -146,7 +156,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
 void _TransmitThread_::fnGoActive(TransmitArgs* pTransmit)
 {
-    pTransmit->pReceive->bRequestStop = true;
+    SetEvent(pTransmit->pReceive->hRequestStop);
     pTransmit->bActive = true;
     fnTransmitActive(pTransmit);
 }
@@ -162,4 +172,3 @@ void _TransmitThread_::fnStop(TransmitArgs* pTransmit)
     pTransmit->bActive = false;
     pTransmit->bStopped = true;
 }
-

@@ -50,7 +50,7 @@
 /////////////////////////////////////
 
 /** default dwDesiredAccess value for the CreateFile function */
-const DWORD DW_DEF_DESIRED_ACCESS = GENERIC_READ | GENERIC_WRITE;
+const DWORD DW_DEF_DESIRED_ACCESS = GENERIC_READ | GENERIC_WRITE | SYNCHRONIZE;
 
 /** default dwShareMode value for the CreateFile function */
 const DWORD DW_DEF_SHARE_MODE = 0;
@@ -165,7 +165,7 @@ class CommPort
         int fnClose(void);
         int fnSend(char*, DWORD);
 		TransmitBuffer* fnGetTransmitBuffer(void);
-        HANDLE* fnGetCommHandle(void);
+        HANDLE fnGetCommHandle(void);
 
     private:
         /** status of serial port; it can be OPENED, or CLLOSED */

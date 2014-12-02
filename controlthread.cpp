@@ -18,7 +18,7 @@ DWORD WINAPI fnControl(LPVOID args)
         // exit look if we're supposed to stop
         if (controlArgs->bRequestStop) {
             OutputDebugString("Control thread stopping\n");
-            pReceiveArgs->bRequestStop = true;
+            SetEvent(pReceiveArgs->hRequestStop);
             SetEvent(pTransmitArgs->hRequestStop);
 
             if (pReceiveArgs->bStopped && pTransmitArgs->bStopped)
@@ -35,7 +35,7 @@ DWORD WINAPI fnControl(LPVOID args)
         {
             if (pReceiveArgs->bStopped)
             {
-                pReceiveArgs->bRequestStop = false;
+                ResetEvent(pReceiveArgs->hRequestStop);
                 pReceiveArgs->bStopped = false;
                 DWORD threadId;
                 CreateThread(NULL, 0, fnReceiveThreadIdle, pReceiveArgs, 0,
