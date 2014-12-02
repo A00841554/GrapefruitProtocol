@@ -45,6 +45,7 @@ bool fnIsEOT( char byPacket[] );
 bool fnIsETB( char byPacket[] );
 
 void fnProcessData(char byPacket[]);
+void fnSentData(char byPacket[]);
 void fnUpdateStats(const int iStat);
 void fnDropHeadPacketData(TransmitArgs*);
 void fnAddHeadPacketData(TransmitArgs*, char*);

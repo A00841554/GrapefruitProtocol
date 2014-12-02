@@ -14,6 +14,7 @@
  *                  bool fnIsEOT( char byPacket[] )
  *                  bool fnIsETB( char byPacket[] )
  *                  void fnProcessData(char byPacket[])
+ *                  void fnSentData(char byPacket[])
  *                  void fnSendData(char byControlChar, HANDLE hCommPort)
  *                  void fnSendData(char byPacket[], HANDLE hCommPort)
  *                  int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
@@ -314,6 +315,49 @@ void fnProcessData(char byPacket[])
     int TextLen = SendMessage(hReceived, WM_GETTEXTLENGTH, 0, 0);
     SendMessage(hReceived, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
     SendMessage(hReceived, EM_REPLACESEL, FALSE, (LPARAM)sData.c_str());
+}
+
+
+/**
+ * @function    fnSentData       -> Prints all the characters in the Data part of the
+ *                                  sent packet until an ETX control character is found
+ *
+ * @date        November 21st, 2014
+ *
+ * @revision
+ *              November 28th, 2014 -> changed char(int) to ETB, EOT, etc..
+ *
+ * @designer    Marc Rafanan
+ *
+ * @programmer  Marc Rafanan
+ *
+ * @signature   void fnSentData(char byPacket[])
+ *
+ * @param       byPacket[]          -> The packet that is to be printed.
+ *
+ * @return      void
+ *
+ * @note
+ *
+ */
+void fnSentData(char byPacket[])
+{
+    int iDataend = 0;
+    for(int i = HEADER_SIZE; i <(HEADER_SIZE + DATA_SIZE); i++)
+    {
+        //check if current char being printed is an ETX
+        if(byPacket[i] == ETX)
+            break;
+        iDataend++;
+    }
+
+    string str(byPacket);
+    string sData = str.substr(HEADER_SIZE, iDataend);
+    OutputDebugString(sData.c_str());
+
+    int TextLen = SendMessage(hSent, WM_GETTEXTLENGTH, 0, 0);
+    SendMessage(hSent, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
+    SendMessage(hSent, EM_REPLACESEL, FALSE, (LPARAM)sData.c_str());
 }
 
 
