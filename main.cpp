@@ -299,6 +299,8 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         oCommPort = new CommPort(DEFAULT_PORT_NAME);
         oApp = new Application(hwnd, oCommPort, oTerminal);
 
+        //set the random seed
+        srand(time(NULL));
 
         // set the application's mode & comm port
         (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
