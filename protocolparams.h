@@ -2,15 +2,15 @@
 #define _PROTOCOLPARAMS_H_
 
 // control characters
-const char EOT  = char('N');//4
-const char ETB  = char('C');//23
-const char ETX  = char('X');//3
-const char SYN1 = char('S');//18
-const char SYN2 = char('Z');//19
-const char ACK  = char('A');//6
-const char NAK  = char('N');//21
-const char RVI  = char('R');//17
-const char ENQ  = char('E');//5
+const char EOT  = 4;
+const char ETB  = 23;
+const char ETX  = 3;
+const char SYN1 = 18;
+const char SYN2 = 19;
+const char ACK  = 6;
+const char NAK  = 21;
+const char RVI  = 17;
+const char ENQ  = 5;
 
 // timeouts & retry counts
 const int SHORT_SLEEP                   = 100;
