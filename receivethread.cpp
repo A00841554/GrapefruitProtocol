@@ -183,7 +183,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
         {
             case ReadDataResult::SUCCESS:
             {
-                OutputDebugString("ReceiveThread: Received Packet");
+                OutputDebugString("ReceiveThread: Received Packet\n");
 
                 // update statistics
                 fnUpdateStats(STATS_PCKT_RECEIVED);
