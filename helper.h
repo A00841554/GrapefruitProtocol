@@ -48,7 +48,6 @@ void fnProcessData(char byPacket[]);
 void fnSentData(char byPacket[]);
 void fnUpdateStats(const int iStat);
 void fnDropHeadPacketData(TransmitArgs*);
-void fnAddHeadPacketData(TransmitArgs*, char*);
 
 void fnSendData(char byPacket[], HANDLE commPort);
 void fnSendData(char byControlChar, HANDLE hCommPort);

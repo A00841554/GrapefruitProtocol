@@ -130,15 +130,6 @@ void fnDropHeadPacketData(TransmitArgs* pTransmit)
     pTransmit->pTransmitBuffer->erase(packetStart, packetEnd);
 }
 
-void fnAddHeadPacketData(TransmitArgs* pTransmit, char* byPacket)
-{
-    for(int i = DATA_SIZE + 1; i >= 0; --i)
-    {
-        pTransmit->pTransmitBuffer->insert(
-                pTransmit->pTransmitBuffer->begin(), byPacket[HEADER_SIZE+i]);
-    }
-}
-
 /**
  * @function    fnValidatePacket    -> gets a packet which is then comparing the CRC in the packet
  *                                      to the calculated CRC and returns a boolean based on how
