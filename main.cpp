@@ -499,18 +499,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 		
 			break;
 
+
         case WM_HOTKEY:
             if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
             {
                 int textLength = GetWindowTextLength(*oTerminal->hwndEditBox);
                 char* string = new char[textLength + 1];
-
                 GetWindowText(*oTerminal->hwndEditBox, string, textLength + 1);
                 SetWindowText(*oTerminal->hwndEditBox, NULL);
                 (*oApp).fnSend(string, textLength);
-
                 delete string;
             }
+            OutputDebugString("Hotkey 'ctr + s' pressed\n");
             break;
 
         ///////////////////////////////
