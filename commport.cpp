@@ -432,26 +432,85 @@ int CommPort::fnClose(void)
     }
 }
 
+/**
+ * gets the transmit buffer
+ *
+ * @class        CommPort
+ *
+ * @method       fnClose
+ *
+ * @date         2014-11-19
+ *
+ * @revisions    none
+ *
+ * @designer     EricTsang
+ *
+ * @programmer   EricTsang
+ *
+ * @signature    TransmitBuffer* CommPort::fnGetTransmitBuffer(void)
+ *
+ * @return       TransmitBuffer* - typedef as a vector<char> that holds characters
+ *                                 to be sent
+ */
 TransmitBuffer* CommPort::fnGetTransmitBuffer(void)
 {
     return &transmitBuffer;
 }
 
+/**
+ * returns commport handle
+ *
+ * @class        CommPort
+ *
+ * @method       fnGetCommHandle
+ *
+ * @date         2014-11-19
+ *
+ * @revisions    none
+ *
+ * @designer     EricTsang
+ *
+ * @programmer   EricTsang
+ *
+ * @signature    HANDLE CommPort::fnGetCommHandle(void)
+ *
+ * @return       HANDLE for the comm port.
+ *
+ */
 HANDLE CommPort::fnGetCommHandle(void)
 {
     return mHComm;
 }
 
+/**
+ * populates the transmitBuffer sent from the Edit box
+ *
+ * @class        CommPort
+ *
+ * @method       fnSend
+ *
+ * @date         2014-11-19
+ *
+ * @revisions    none
+ *
+ * @designer     EricTsang
+ *
+ * @programmer   EricTsang
+ *
+ * @signature    int CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)
+ *
+ * @return       int - return code
+ */
 int CommPort::fnSend(char* pBuffer, DWORD nBytesToSend)
 {
     // verify state; cannot close the port if it's already closed
     if (mStatus == Status::CLOSED)
         return INVALID_OPERATION_FOR_STATE;
 
-	for (int i = 0; i < nBytesToSend; ++i)
-	{
+    for (int i = 0; i < nBytesToSend; ++i)
+    {
         transmitBuffer.push_back(pBuffer[i]);
-	}
+    }
 
     return SUCCESS;
 }

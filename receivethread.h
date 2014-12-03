@@ -1,5 +1,6 @@
 /**
- * receivethread header file
+ * receivethread is responsible with for acknowledging, receiving,
+ * and processing data being transmitted.
  *
  * @sourceFile   receivethread.h
  *
@@ -7,16 +8,20 @@
  *
  * @class        n/a
  *
- * @function     n/a
+ * @function     DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg);
+ *               DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg);
+ *               void fnGoActive(ReceiveArgs* pTransmit);
+ *               void fnStop(ReceiveArgs* pTransmit);
  *
  * @date         2014-11-19
  *
  * @revision     0.0.0
  *
  * @designer     Marc Rafanan
+ *               Eric Tsang
  *
  * @programmer   Marc Rafanan
- *
+ *               Eric Tsang
  * @note         none
  */
 

@@ -1,22 +1,18 @@
-
 /**
- * definitions of functions declared in terminal.h
+ * Terminal class that controls the status and window clearing
  *
  * @sourceFile   terminal.cpp
  *
- * @program      DumbTerminal2.exe
+ * @program      Grapefruit.exe
  *
  * @classes      Terminal
+ * 
+ * @constructor  Terminal::Terminal(HWND* hwnd, HWND* hwndLeft, 
+                                    HWND* hwndRight, HWND* hwndEdit,
+                                    HWND* hwndStatus, HWND* hwndStatistics)
  *
- * @function     Terminal::Terminal(HWND* hwnd, FontSettings* fontSettings)
  * @function     void Terminal::fnPrint(std::string str)
- * @function     void Terminal::fnBackspace(void)
  * @function     void Terminal::fnClearScreen(void)
- * @function     void Terminal::fnRedrawScreen(RECT* rect = NULL, HDC hdc =
- *                   NULL)
- * @function     void Terminal::fnSetClearScreenBeforeNextPrint(void)
- * @function     void Terminal::fnPrintText(HDC hdc, RECT* displayArea,
- *                   std::string text)
  *
  * @date         2014-09-27
  *
@@ -31,14 +27,6 @@
 #include "terminal.h"
 
 
-
-/////////////////
-// Constructor //
-/////////////////
-Terminal::Terminal()
-{
-
-}
 /**
  * instantiates a Terminal object.
  *
@@ -48,26 +36,35 @@ Terminal::Terminal()
  *
  * @date         2014-09-25
  *
- * @revision     none
+ * @revision     2014-11-19 Modified for Grapefruit Protocol
  *
  * @designer     EricTsang
+ *               Marc Rafanan
  *
  * @programmer   EricTsang
+ *               Marc Rafanan
  *
  * @note         none
  *
- * @signature    Terminal::Terminal(HWND* hwnd, HFONT* prtHFont, FontColors*
- *                   ptrDefaultFontColors)
+ * @signature    Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight,
+                          HWND* hwndEdit, HWND* hwndStatus, HWND* hwndStatistics)
  *
- * @param        hwnd   handle to the window that this Terminal instance wil
- *                   print things on
- * @param        fontSettings   settings for the font used to display
- *                   information on this terminal
- * @param        ptrDefaultFontColors   pointer to a FontColors structure that
- *                   describes the default colors used to display some text if
- *                   no other colors are specified
+ * @param        HWND* hwnd         Pointer to the main window handle
+ *
+ * @param        HWND* hwndLeft     Pointer to the sent messages window
+ *
+ * @param        HWND* hwndRight    Pointer to the received messages window
+ *
+ * @param        HWND* hwndEdit     Pointer to the Edit box
+ *
+ * @param        HWND* hwndStatus   Pointer to the Status bar
+ *
+ * @param        HWND* hwndStatistics   Pointer to the Stats window
+ *
  */
-Terminal::Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndEdit, HWND* hwndStatus, HWND* hwndStatistics)
+Terminal::Terminal(HWND* hwnd, HWND* hwndLeft, 
+                   HWND* hwndRight, HWND* hwndEdit,
+                   HWND* hwndStatus, HWND* hwndStatistics)
 {
     hwndMain = hwnd;
     hwndSent = hwndLeft;
@@ -78,36 +75,27 @@ Terminal::Terminal(HWND* hwnd, HWND* hwndLeft, HWND* hwndRight, HWND* hwndEdit, 
 }
 
 /**
- * prints the passed string (str) to the Terminal.
+ * prints the status to the status window
  *
  * @class        Terminal
  *
  * @method       fnPrint
  *
- * @date         2014-09-25
+ * @date         2014-11-19
  *
- * @revision     2014-10-13 - Eric Tsang - extracted the appending of the string
- *                   (str) to a new function so client objects may append
- *                   multiple strings with different colors using the other
- *                   function, then invoke fnRedrawScreen to update the screen.
- *                   this is faster than calling fnPrint multiple times, because
- *                   fnPrint always invokes fnRedrawScreen
+ * @revision
  *
  * @designer     EricTsang
+ *               Marc Rafanan
  *
  * @programmer   EricTsang
+ *               Marc Rafanan
  *
- * @note         prints the passed string (str) to the Terminal. if
- *                   fnSetClearScreenBeforeNextPrint was called before this
- *                   print call, then clear the terminal immediately before
- *                   printing the passed string (str) to the Terminal.
+ * @note
  *
- * @signature    void Terminal::fnPrint(std::string str, FontColors*
- *                   ptrFontColors)
+ * @signature    void Terminal::fnPrint(std::string str)
  *
- * @param        str   string to be printed to the Terminal
- * @param        ptrFontColors   pointer to a FontColors struct that describes
- *                   the colors used to display the passed string (str) with
+ * @param        str   string to be printed to the status window
  */
 void Terminal::fnPrint(std::string str)
 {
@@ -117,21 +105,21 @@ void Terminal::fnPrint(std::string str)
 }
 
 /**
- * clears the Terminal screen
+ * clears the Sent, Received, and Status window
  *
  * @class        Terminal
  *
  * @method       fnClearScreen
  *
- * @date         2014-09-25
+ * @date         2014-11-19
  *
- * @revision     2014-10-13 - Eric Tsang - clears the saved font colors now too,
- *                   because text colors is a new addition to the terminal
- *                   object
+ * @revision
  *
  * @designer     EricTsang
+ *               Marc Rafanan
  *
  * @programmer   EricTsang
+ *               Marc Rafanan
  *
  * @note         none
  *
@@ -139,8 +127,8 @@ void Terminal::fnPrint(std::string str)
  */
 void Terminal::fnClearScreen(void)
 {
-    SetWindowText(*hwndStsBar, NULL);
-    SetWindowText(*hwndSent, NULL);
-    SetWindowText(*hwndReceived, NULL);
+    SetWindowText(*hwndStsBar, NULL);   // Clear Status bar
+    SetWindowText(*hwndSent, NULL);     // Clear Sent window
+    SetWindowText(*hwndReceived, NULL); // Clear Received window
 }
 

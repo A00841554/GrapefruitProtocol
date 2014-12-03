@@ -164,7 +164,7 @@ class CommPort
         int fnOpen(void);
         int fnClose(void);
         int fnSend(char*, DWORD);
-		TransmitBuffer* fnGetTransmitBuffer(void);
+        TransmitBuffer* fnGetTransmitBuffer(void);
         HANDLE fnGetCommHandle(void);
 
     private:
@@ -186,8 +186,8 @@ class CommPort
         /** used to configure the serial port */
         COMMCONFIG mCommConfig;
 
-		/** vector of characters to send */
-		TransmitBuffer transmitBuffer;
+        /** vector of characters to send */
+        TransmitBuffer transmitBuffer;
 
         /** sommunication timeouts */
         COMMTIMEOUTS mCommTimeouts;

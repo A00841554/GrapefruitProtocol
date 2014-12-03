@@ -1,5 +1,6 @@
 /**
- * receivethread source file
+ * receivethread is responsible with for acknowledging, receiving,
+ * and processing data being transmitted.
  *
  * @sourceFile   receivethread.cpp
  *
@@ -7,16 +8,20 @@
  *
  * @class        n/a
  *
- * @function     n/a
+ * @function     DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg);
+ *               DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg);
+ *               void fnGoActive(ReceiveArgs* pTransmit);
+ *               void fnStop(ReceiveArgs* pTransmit);
  *
  * @date         2014-11-19
  *
  * @revision     0.0.0
  *
  * @designer     Marc Rafanan
+ *               Eric Tsang
  *
  * @programmer   Marc Rafanan
- *
+ *               Eric Tsang
  * @note         none
  */
 
@@ -34,16 +39,18 @@
  * @revision   0.0.0 - Initial draft
  *
  * @designer   Marc Rafanan
+ *             Eric Tsang
  *
  * @programmer Marc Rafanan
+ *             Eric Tsang
  *
  * @signature  DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
  *
- * @param      stReceive - Structure that holds the flags for receivethread
+ * @param      LPVOID lpArg - Structure that holds the flags for receivethread
  *
  * @return     DWORD
  *
- * @note       note1
+ * @note
  *
  */
 DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
@@ -110,7 +117,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
             default:
             {
                 DWORD err = GetLastError();
-                OutputDebugString("Something went wrong...\n");
+                OutputDebugString("ReceiveThread: Idle: Error in WaitForMultipleObjects\n");
                 _ReceiveThread_::fnStop(pReceive);
                 break;
             }
@@ -132,16 +139,18 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
  * @revision   0.0.0 - Initial draft
  *
  * @designer   Marc Rafanan
+ *             Eric Tsang
  *
  * @programmer Marc Rafanan
+ *             Eric Tsang
  *
  * @signature  DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
  *
- * @param      stReceive - Structure that holds the flags for receivethread
+ * @param      LPVOID lpArg - Structure that holds the flags for receivethread
  *
  * @return     DWORD
  *
- * @note       note1
+ * @note
  *
  */
 DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
@@ -176,7 +185,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
             {
                 OutputDebugString("ReceiveThread: Received Packet");
 
-                // update UI
+                // update statistics
                 fnUpdateStats(STATS_PCKT_RECEIVED);
 
                 // Check data if valid; bail if invalid
@@ -231,6 +240,28 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
     return 0;
 } // End of fnReceiveThreadActive
 
+
+/**
+ * @function   fnGoActive - Helper function to set receive structure
+ *                          parameters when going to active mode.
+ *
+ * @date       2014-11-19
+ *
+ * @revision   0.0.0 - Initial draft
+ *
+ * @designer   Eric Tsang
+ *
+ * @programmer Eric Tsang
+ *
+ * @signature  void fnGoActive(ReceiveArgs* pReceive)
+ *
+ * @param      ReceiveArgs* pReceive - Structure that holds the flags for receivethread
+ *
+ * @return     void
+ *
+ * @note
+ *
+ */
 void _ReceiveThread_::fnGoActive(ReceiveArgs* pReceive)
 {
     SetEvent(pReceive->pTransmit->hRequestStop);
@@ -238,6 +269,27 @@ void _ReceiveThread_::fnGoActive(ReceiveArgs* pReceive)
     fnReceiveThreadActive(pReceive);
 }
 
+/**
+ * @function   fnStop     - Helper function to set receive structure
+ *                          parameters when stopping the receive thread.
+ *
+ * @date       2014-11-19
+ *
+ * @revision   0.0.0 - Initial draft
+ *
+ * @designer   Eric Tsang
+ *
+ * @programmer Eric Tsang
+ *
+ * @signature  void fnStop(ReceiveArgs* pReceive)
+ *
+ * @param      ReceiveArgs* pReceive - Structure that holds the flags for receivethread
+ *
+ * @return     void
+ *
+ * @note
+ *
+ */
 void _ReceiveThread_::fnStop(ReceiveArgs* pReceive)
 {
     pReceive->bActive = false;
