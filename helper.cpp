@@ -298,7 +298,6 @@ void fnProcessData(char byPacket[])
 
     string str(byPacket);
     string sData = str.substr(HEADER_SIZE, iDataend);
-    OutputDebugString(sData.c_str());
 
     int TextLen = SendMessage(hReceived, WM_GETTEXTLENGTH, 0, 0);
     SendMessage(hReceived, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
@@ -341,7 +340,6 @@ void fnSentData(char byPacket[])
 
     string str(byPacket);
     string sData = str.substr(HEADER_SIZE, iDataend);
-    OutputDebugString(sData.c_str());
 
     int TextLen = SendMessage(hSent, WM_GETTEXTLENGTH, 0, 0);
     SendMessage(hSent, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
@@ -457,8 +455,6 @@ void fnUpdateStats(const int iStat)
  */
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
-    OutputDebugString("helper: send packet\n");
-
     OVERLAPPED ov;
     DWORD dwBytesWritten;
 
@@ -529,7 +525,6 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
  */
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
 {
-    OutputDebugString("Helper: fnReadData\n");
     OVERLAPPED ov;
     DWORD byTransfered;
     int returnCode;
@@ -576,7 +571,6 @@ int fnWaitForChar(
         char expectedChar,
         DWORD timeout)
 {
-    OutputDebugString("fnWaitForChar\n");
     Timer timeoutTimer;
     char readChar;
 
@@ -629,7 +623,6 @@ int fnWaitForChars(
         int expectedCharsLen,
         DWORD timeout)
 {
-    OutputDebugString("fnWaitForChars\n");
     Timer timeoutTimer;
 
     timeoutTimer.fnClockStart();
