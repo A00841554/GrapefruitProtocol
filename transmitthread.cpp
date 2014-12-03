@@ -12,6 +12,9 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
         pTransmit->bReset = false;
     }
 
+    // Reset SYN1
+    pTransmit->bSYN1 = true;
+
     // check for data to send, or a request to stop
     OutputDebugString("TransmitThread: Idle\n");
     HANDLE handles[] = {pTransmit->hRequestStop, pTransmit->hRequestActive};

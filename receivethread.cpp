@@ -61,6 +61,9 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
     // Set receive structure
     ReceiveArgs* pReceive = (ReceiveArgs*) lpArg;
 
+    // Reset SYN1
+    pReceive->bSYN1 = false;
+
     // clear receive buffer
     ClearCommError(pReceive->hCommPort, NULL, NULL);
     PurgeComm(pReceive->hCommPort, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);

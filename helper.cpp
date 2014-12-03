@@ -155,13 +155,12 @@ void fnDropHeadPacketData(TransmitArgs* pTransmit)
  */
 bool fnValidatePacket(char byPacket[]) {
 
-    /*char* byPacketData = byPacket + HEADER_SIZE;
+    char* byPacketData = byPacket + HEADER_SIZE;
     char* byPacketCrc = byPacketData + DATA_SIZE;
     // apply the CRC
     crcInit();
     crc syndrome = crcFast((unsigned char*) byPacketData, DATA_SIZE);
-    return syndrome == *(crc*) byPacketCrc;*/
-    return true;
+    return syndrome == *(crc*) byPacketCrc;
 }
 
 
@@ -192,13 +191,12 @@ bool fnValidatePacket(char byPacket[]) {
 bool fnCheckDuplicate(char byPacket[], ReceiveArgs &receive)
 {
     //if both are bSYN1(dc2)
-    /*if(byPacket[1] == SYN1 && receive.bSYN1)
+    if(byPacket[1] == SYN1 && receive.bSYN1)
         return true;
     //if both are bSYN2(dc3)
     if(byPacket[1] == SYN2 && !receive.bSYN1 )
         return true;
     //if its not a repeated packet
-    receive.bSYN1 = !receive.bSYN1;*/
     return false;
 }
 
