@@ -444,7 +444,7 @@ void fnUpdateStats(const int iStat)
                   "\r\n\r\nPackets Sent: " + string(cNumPcktsSent) +
                   "\r\n\r\nPackets Received: " + string(cNumPcktsReceived) +
                   "\r\n\r\nInvalid Packets received: " + string(cNumInvPckts) +
-                  "\r\n\r\nReceived Packets Error Rate: " + string(cReceivedErrorRate);
+                  "\r\n\r\nReceived Packets Error Ratio: " + string(cReceivedErrorRate);
 
     SendMessage(hStats,  WM_SETTEXT, FALSE, (LPARAM)sStatistics.c_str());
 }
