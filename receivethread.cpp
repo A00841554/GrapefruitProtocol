@@ -72,7 +72,6 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
 
     // check for data from serial port, or a request to stop
     OutputDebugString("ReceiveThread: Idle\n");
-    assert(SetCommMask(pReceive->hCommPort, EV_RXCHAR));
     HANDLE handles[] = {pReceive->hRequestStop, ov.hEvent};
     while(true)
     {
@@ -171,11 +170,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
         {
             case ReadDataResult::SUCCESS:
             {
-                {
-                    std::stringstream sstm;
-                    sstm << "ReceiveThread: Received " << receivedPacket << std::endl;
-                    OutputDebugString(sstm.str().c_str());
-                }
+                OutputDebugString("ReceiveThread: Received Packet");
 
                 // update UI
                 fnUpdateStats(STATS_PCKT_RECEIVED);

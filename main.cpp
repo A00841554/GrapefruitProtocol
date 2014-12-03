@@ -503,13 +503,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 /////////////////////
                 case IDC_MAIN_BUTTON:
                 {
-                    char string[5000];
-                    GetWindowText(*oTerminal->hwndEditBox, string, 500);
-                    (*oApp).fnSend(string, strlen(string));
                     if((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
                     {
+                        int textLength = GetWindowTextLength(*oTerminal->hwndEditBox);
+                        char* string = new char[textLength+1];
+
+                        GetWindowText(*oTerminal->hwndEditBox, string, textLength+1);
                         SetWindowText(*oTerminal->hwndEditBox, NULL);
-                        //SendMessage(*oTerminal->hwndEditBox, WM_SETTEXT, FALSE, (LPARAM)"");
+                        (*oApp).fnSend(string, textLength);
+
+                        delete string;
                     }
                     break;
                 }
