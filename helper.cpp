@@ -300,6 +300,16 @@ void fnProcessData(char byPacket[])
     string sData = str.substr(HEADER_SIZE, iDataend);
 
     int TextLen = SendMessage(hReceived, WM_GETTEXTLENGTH, 0, 0);
+    int dataLength = sData.length();
+
+    if (TextLen + dataLength > MAX_WIN_CHARS )
+    {
+        char* sRollOver = new char[TextLen + 1];
+        
+        GetWindowText(hReceived, sRollOver, TextLen+1);
+        SetWindowText(hReceived, NULL);
+        sData = sData + sRollOver;
+    }
     SendMessage(hReceived, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
     SendMessage(hReceived, EM_REPLACESEL, FALSE, (LPARAM)sData.c_str());
 }
