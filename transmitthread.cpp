@@ -71,7 +71,6 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     if(pTransmit->pReceive->bRVI)
     {
         fnSendData(RVI, pTransmit->hCommPort);
-        pTransmit->pReceive->bRVI = false;
     }
     else
     {
@@ -97,6 +96,10 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 
         while(true)
         {
+            // clear rvi
+            pTransmit->pReceive->bRVI = false;
+
+            // send data
             fnSendData(pSCurrPacket, pTransmit->hCommPort);
             char expectedChars[] = {ACK, NAK, RVI};
             int result = fnWaitForChars(pTransmit->hCommPort, &byReceivedChar,
