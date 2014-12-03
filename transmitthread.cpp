@@ -55,13 +55,14 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     // reset state to delay sending ENQ
     if(pTransmit->bReset)
     {
-        OutputDebugString("TransmitThread: Reset\n");
         int sleepTime = rand() % (MAX_RESET_TIMEOUT - MIN_RESET_TIMEOUT) + MIN_RESET_TIMEOUT;
-        Sleep(sleepTime);
-        std::stringstream sstm;
-        sstm << "TransmitThread: Sleep for " << sleepTime << " ms\n";
-        OutputDebugString(sstm.str().c_str());
         pTransmit->bReset = false;
+        
+        std::stringstream sstm;
+        sstm << "TransmitThread: Reset " << sleepTime << " ms\n";
+        OutputDebugString(sstm.str().c_str());
+        
+        Sleep(sleepTime);
     }
 
     // Reset SYN1
