@@ -534,9 +534,9 @@ void fnSendData(char byPacket[], HANDLE hCommPort)
  */
 void fnSendData(char byControlChar, HANDLE hCommPort)
 {
-    std::stringstream sstm;
-    sstm << "helper: send " << int(byControlChar) << endl;
-    OutputDebugString(sstm.str().c_str());
+    //std::stringstream sstm;
+    //sstm << "helper: send " << int(byControlChar) << endl;
+    //OutputDebugString(sstm.str().c_str());
 
     OVERLAPPED ov;
     memset(&ov, 0, sizeof(OVERLAPPED));
