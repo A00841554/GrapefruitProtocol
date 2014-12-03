@@ -97,6 +97,7 @@ class Application
         void fnConfigurePort(void);
         void fnSend(char*, int);
         void fnOnReceive(char);
+        void fnSetRVI(void);
         void fnHelp(void);
 
     private:

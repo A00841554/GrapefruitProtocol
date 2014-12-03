@@ -562,3 +562,9 @@ void Application::fnStopControlThread(void)
 {
     controlArgs.bRequestStop = true;
 }
+
+void Application::fnSetRVI()
+{
+    if (mMode == ApplicationConsts::Mode::CONNECT)
+        controlArgs.pReceive->bRVI = true;
+}

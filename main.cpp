@@ -576,6 +576,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
                 case IDM_CLEAR_SCREEN:
                     (*oTerminal).fnClearScreen();
                     break;
+
+                ////////////
+                // do RVI //
+                ////////////
+                case IDM_RVI:
+                    (*oApp).fnSetRVI();
+                    break;
             }
             break;
 
