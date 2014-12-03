@@ -22,5 +22,6 @@ MYMENU MENU
         MENUITEM "Command", IDM_COMMAND
         MENUITEM "Connect", IDM_CONNECT
     }
+    MENUITEM "&RVI", IDM_RVI
     MENUITEM "&Help", IDM_HELP
 }

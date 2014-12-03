@@ -41,3 +41,6 @@
 #define RECEIVED_BOX			118
 #define STATS_BOX				119
 #define STATUS_BAR				120
+
+/** menu item ID for RVI */
+#define IDM_RVI                 121
