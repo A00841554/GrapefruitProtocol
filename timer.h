@@ -3,13 +3,13 @@
  *
  * @sourceFile      timer.h
  *
- * @program      
+ * @program         Grapefruit.exe
  *
  * @classes         Timer
  *
  * @functions       n/a
  *
- * @date            2014-09-29
+ * @date            November 29th, 2014
  *
  * @revisions
  *
@@ -48,7 +48,7 @@ using namespace std;
  *                  clock_t  stop
  *                  bool     started    
  *
- * @date            November 29, 2014
+ * @date            November 29th, 2014
  *
  * @revisions
  *

@@ -3,7 +3,7 @@
  *
  * @sourceFile      helper.cpp
  *
- * @program
+ * @program         Grapefruit.exe
  *
  * @classes         n/a
  *
@@ -11,13 +11,17 @@
  *                  char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
  *                  bool fnValidatePacket(char byPacket[])
  *                  bool checkDuplicate(char byPacket[], ReceiveArgs &receive)
+ *                  void fnDropHeadPacketData(TransmitArgs* pTransmit)
  *                  bool fnIsEOT( char byPacket[] )
  *                  bool fnIsETB( char byPacket[] )
+ *                  void fnUpdateStats(const int iStat)
  *                  void fnProcessData(char byPacket[])
  *                  void fnSentData(char byPacket[])
  *                  void fnSendData(char byControlChar, HANDLE hCommPort)
  *                  void fnSendData(char byPacket[], HANDLE hCommPort)
  *                  int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
+ *                  int fnWaitForChars(HANDLE hCommPort, char* readChar, char* expectedChars, int expectedCharsLen, DWORD timeout)
+ *                  int fnWaitForChar(HANDLE hCommPort, char expectedChar, DWORD timeout)
  *
  *
  * @date            November 19th, 2014
@@ -53,7 +57,7 @@ using namespace std;
  * @signature   char* fnPacketizeData(TransmitArgs &transmit, bool bForceEOT)
  *
  * @param       transmit            -> A struct which takes care of the transmit part of our program
- *              packet              -> A PACKET_SIZE sized character array where the packet will be written to
+ *              byPacket              -> A PACKET_SIZE sized character array where the packet will be written to
  *              bForceEOT           -> A boolean that checks if the transmit thread wants to end Transmission
  *
  * @return      Char array(the packet)
@@ -121,6 +125,27 @@ void fnPacketizeData(TransmitArgs &transmit, char* byPacket, bool bForceEOT)
 } // End of fnPacketizeData
 
 
+/**
+* @function    fnDropHeadPacketData     -> gets a buffer from TransmitArgs and then
+*                                           removes the data that already has been used
+*
+* @date        December 1st, 2014
+*
+* @revision    
+*
+* @designer    Eric Tsang
+*
+* @programmer  Eric Tsang
+*
+* @signature   void fnDropHeadPacketData(TransmitArgs* pTransmit)
+*
+* @param       transmit            -> A struct which takes care of the transmit part of our program
+*              
+* @return      void
+*
+* @note
+*
+*/
 void fnDropHeadPacketData(TransmitArgs* pTransmit)
 {
     auto packetStart = pTransmit->pTransmitBuffer->begin();
@@ -526,6 +551,17 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
 }
 
 /**
+ * @function    fnReadData        -> Sends a control character to the port
+ *
+ * @date        December 2nd, 2014
+ *
+ * @revision
+ *
+ * @designer    Eric Tsang
+ *
+ * @programmer  Eric Tsang
+ *
+ * @signature   int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
  * reads data from the passed serial port handle & returns the value returned by
  *   GetOverlappedResult.
  *
@@ -587,6 +623,30 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
     return returnCode;
 }
 
+/**
+* @function    fnWaitForChar       
+*
+* @date        December 2nd, 2014
+*
+* @revision
+*
+* @designer    Eric Tsang
+*
+* @programmer  Eric Tsang
+*
+* @signature int fnWaitForChar( HANDLE hCommPort, char expectedChar, DWORD timeout)
+* waits for a specified character, and returns when one of them is
+*   received.
+*
+* @param  hCommPort handle to serial port to read from
+* @param  readChar where the received character is written to
+* @param  expectedChars character array of all acceptable characters that we
+*   can receive through the serial port
+* @param  expectedCharsLen length of the passed character array (expectedChars)
+* @param  timeout milliseconds to wait for any of the specified characters
+*
+* @return [file_header] [class_header] [description]
+*/
 int fnWaitForChar(
         HANDLE hCommPort,
         char expectedChar,
@@ -623,8 +683,19 @@ int fnWaitForChar(
     return 0;
 }
 
-/**
- * waits for a specified set of characters, and returns when one of them is
+ /**
+ * @function    fnWaitForChars         
+ *
+ * @date        December 2nd, 2014
+ *
+ * @revision
+ *
+ * @designer    Eric Tsang
+ *
+ * @programmer  Eric Tsang
+ *
+ * @signature int fnWaitForChar( HANDLE hCommPort, char expectedChar, DWORD timeout)
+ * waits for a specified character, and returns when one of them is
  *   received.
  *
  * @param  hCommPort handle to serial port to read from

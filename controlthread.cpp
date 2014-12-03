@@ -2,6 +2,29 @@
 #include "receivethread.h"
 #include "transmitthread.h"
 
+/**
+* Creates the control thread and manages what is needed and is being used by it
+*
+* @sourceFile      controlthread.cpp
+*
+* @program         Grapefruit.exe
+*
+* @classes         n/a
+*
+* @functions
+*                
+* @date            November 19th, 2014
+*
+* @revisions
+*
+* @designer        Eric Tsang
+*
+* @programmer      Eric Tsang
+*
+* @notes           none
+*/
+
+// Creates one of the control threads that we will be using which is the control thread
 DWORD WINAPI fnControl(LPVOID args)
 {
 
@@ -20,7 +43,7 @@ DWORD WINAPI fnControl(LPVOID args)
             OutputDebugString("Control thread stopping\n");
             SetEvent(pReceiveArgs->hRequestStop);
             SetEvent(pTransmitArgs->hRequestStop);
-
+            // if both the recieve and the transmit thread are stopped
             if (pReceiveArgs->bStopped && pTransmitArgs->bStopped)
             {
                 OutputDebugString("Control thread stopped\n");
@@ -33,6 +56,7 @@ DWORD WINAPI fnControl(LPVOID args)
         // not active
         else if (!pReceiveArgs->bActive && !pTransmitArgs->bActive)
         {
+            // if stopped, then restart the thread
             if (pReceiveArgs->bStopped)
             {
                 ResetEvent(pReceiveArgs->hRequestStop);
@@ -41,6 +65,7 @@ DWORD WINAPI fnControl(LPVOID args)
                 CreateThread(NULL, 0, fnReceiveThreadIdle, pReceiveArgs, 0,
                         &threadId);
             }
+            // if stopped, then restart the thread
             if (pTransmitArgs->bStopped)
             {
                 ResetEvent(pTransmitArgs->hRequestStop);

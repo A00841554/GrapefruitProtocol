@@ -8,6 +8,28 @@
 struct TransmitArgs;
 struct ReceiveArgs;
 
+/**
+* Header for the control thread
+*
+* @sourceFile      controlthread.h
+*
+* @program         Grapefruit.exe
+*
+* @classes         n/a
+*
+* @functions
+*
+* @date            November 19th, 2014
+*
+* @revisions
+*
+* @designer        Eric Tsang
+*
+* @programmer      Eric Tsang
+*
+* @notes           none
+*/
+
 /** structure passed to transmit thread as thread arguments. */
 struct TransmitArgs
 {

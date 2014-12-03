@@ -3,7 +3,7 @@
  *
  * @sourceFile      Timer.cpp
  *
- * @program      
+ * @program         Grapefruit.exe
  *
  * @classes         Timer
  *
@@ -41,8 +41,6 @@
  *
  * @param           
  *
- * @return          
- *
  * @revisions    
  *
  * @designer        Jonathan Chu
@@ -77,7 +75,7 @@ Timer::Timer()
  * @programmer      Jonathan Chu
  *
  * @notes
- *
+ *      Starts the clock by keeping a record of the time when the function was called
  */
 void Timer::fnClockStart() 
 {
@@ -105,7 +103,7 @@ void Timer::fnClockStart()
  * @programmer      Jonathan Chu
  *
  * @notes
- *
+ *          Stops the clock by keeping track of the time the function was called
  */
 void Timer::fnClockStop()
 {
@@ -135,7 +133,7 @@ void Timer::fnClockStop()
  * @programmer      Jonathan Chu
  *
  * @notes
- *
+ *          Caculates the time difference, depending of as to stop has been called or not
  */
 int Timer::fnTimeElapsed()
 {

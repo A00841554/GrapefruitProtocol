@@ -3,7 +3,7 @@
  *
  * @sourceFile      helper.h
  *
- * @program
+ * @program         Grapefruit.exe
  *
  * @classes         n/a
  *
@@ -16,7 +16,7 @@
  *                                          added fnCheckDuplicate (char byPacket[], ReceiveArgs &receive)
  *                                          added void fnSendData(char byControlChar, HANDLE hCommPort)
  *
- * @designer        Jonathan Chu
+ * @designer        Jonathan Chu, Marc Rafanan
  *
  * @programmer      Jonathan Chu
  *
@@ -38,8 +38,10 @@
 #include "controlthread.h"
 #include "protocolparams.h"
 
+// This is the max number of characters in the send/receive window
 const int MAX_WIN_CHARS     = 25000;
 
+// the number of characters to roll over when window is full
 const int ROLL_OVER_CHARS   = 5000;
 
 void fnPacketizeData(TransmitArgs &transmit, char* packet, bool bForceEOT);
