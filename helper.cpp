@@ -130,15 +130,6 @@ void fnDropHeadPacketData(TransmitArgs* pTransmit)
     pTransmit->pTransmitBuffer->erase(packetStart, packetEnd);
 }
 
-void fnAddHeadPacketData(TransmitArgs* pTransmit, char* byPacket)
-{
-    for(int i = DATA_SIZE + 1; i >= 0; --i)
-    {
-        pTransmit->pTransmitBuffer->insert(
-                pTransmit->pTransmitBuffer->begin(), byPacket[HEADER_SIZE+i]);
-    }
-}
-
 /**
  * @function    fnValidatePacket    -> gets a packet which is then comparing the CRC in the packet
  *                                      to the calculated CRC and returns a boolean based on how
@@ -164,15 +155,14 @@ void fnAddHeadPacketData(TransmitArgs* pTransmit, char* byPacket)
  */
 bool fnValidatePacket(char byPacket[]) {
 
-    /*char* byPacketData = byPacket + HEADER_SIZE;
+    char* byPacketData = byPacket + HEADER_SIZE;
     char* byPacketCrc = byPacketData + DATA_SIZE;
 
     // apply the CRC
     crcInit();
     crc syndrome = crcFast((unsigned char*) byPacketData, DATA_SIZE);
 
-    return syndrome == *(crc*) byPacketCrc;*/
-    return true;
+    return syndrome == *(crc*) byPacketCrc;
 }
 
 
@@ -310,7 +300,6 @@ void fnProcessData(char byPacket[])
 
     string str(byPacket);
     string sData = str.substr(HEADER_SIZE, iDataend);
-    OutputDebugString(sData.c_str());
 
     int TextLen = SendMessage(hReceived, WM_GETTEXTLENGTH, 0, 0);
     SendMessage(hReceived, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
@@ -353,7 +342,6 @@ void fnSentData(char byPacket[])
 
     string str(byPacket);
     string sData = str.substr(HEADER_SIZE, iDataend);
-    OutputDebugString(sData.c_str());
 
     int TextLen = SendMessage(hSent, WM_GETTEXTLENGTH, 0, 0);
     SendMessage(hSent, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
@@ -469,8 +457,6 @@ void fnUpdateStats(const int iStat)
  */
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
-    OutputDebugString("helper: send packet\n");
-
     OVERLAPPED ov;
     DWORD dwBytesWritten;
 
@@ -507,10 +493,6 @@ void fnSendData(char byPacket[], HANDLE hCommPort)
  */
 void fnSendData(char byControlChar, HANDLE hCommPort)
 {
-    std::stringstream sstm;
-    sstm << "helper: send " << int(byControlChar) << endl;
-    OutputDebugString(sstm.str().c_str());
-
     OVERLAPPED ov;
     DWORD dwBytesWritten;
 
@@ -541,7 +523,6 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
  */
 int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout)
 {
-    OutputDebugString("Helper: fnReadData\n");
     OVERLAPPED ov;
     DWORD byTransfered;
     int returnCode;
@@ -555,19 +536,9 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
     {
 
         case WAIT_OBJECT_0:
-        if(!GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE))
-        {
-            std::stringstream sstm;
-            sstm << "fnReadData: Error: " << GetLastError() << endl;
-            OutputDebugString(sstm.str().c_str());
-            returnCode = ReadDataResult::ERR;
-            break;
-        }
-        else
-        {
-            returnCode = ReadDataResult::SUCCESS;
-            break;
-        }
+        assert(GetOverlappedResult(hCommPort, &ov, &byTransfered, TRUE));
+        returnCode = ReadDataResult::SUCCESS;
+        break;
 
         case WAIT_TIMEOUT:
         CancelIoEx(hCommPort, &ov);
@@ -588,7 +559,6 @@ int fnWaitForChar(
         char expectedChar,
         DWORD timeout)
 {
-    OutputDebugString("fnWaitForChar\n");
     Timer timeoutTimer;
     char readChar;
 
@@ -641,7 +611,6 @@ int fnWaitForChars(
         int expectedCharsLen,
         DWORD timeout)
 {
-    OutputDebugString("fnWaitForChars\n");
     Timer timeoutTimer;
 
     timeoutTimer.fnClockStart();
