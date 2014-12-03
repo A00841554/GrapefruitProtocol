@@ -30,6 +30,7 @@
 #include "application.h"
 #include "protocolparams.h"
 #include "timer.h"
+#include "generator.h"
 
 
 
@@ -278,7 +279,7 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
         oApp = new Application(hwnd, oCommPort, oTerminal);
 
         //set the random seed
-        srand(time(NULL));
+        Generator::set_seed(time(NULL));
 
         // set the application's mode & comm port
         (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);

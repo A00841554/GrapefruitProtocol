@@ -24,6 +24,7 @@
 
 #include "receivethread.h"
 #include "transmitthread.h"
+#include "generator.h"
 
 /**
  * transmit idle thread. waits for the request to go active or request to stop
@@ -55,7 +56,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     // reset state to delay sending ENQ
     if(pTransmit->bReset)
     {
-        int sleepTime = rand() % (MAX_RESET_TIMEOUT - MIN_RESET_TIMEOUT) + MIN_RESET_TIMEOUT;
+        int sleepTime = Generator::range(MIN_RESET_TIMEOUT, MAX_RESET_TIMEOUT);
         pTransmit->bReset = false;
         
         std::stringstream sstm;
