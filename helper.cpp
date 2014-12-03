@@ -550,7 +550,10 @@ int fnReadData(HANDLE hCommPort, char* pBuffer, DWORD bytesToRead, DWORD timeout
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    assert(!ReadFile(hCommPort, pBuffer, bytesToRead, NULL, &ov));
+    if(ReadFile(hCommPort, pBuffer, bytesToRead, NULL, &ov))
+    {
+        return ReadDataResult::SUCCESS;
+    }
 
     switch(WaitForSingleObject(ov.hEvent, timeout))
     {

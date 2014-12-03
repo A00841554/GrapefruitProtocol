@@ -140,5 +140,7 @@ void Terminal::fnPrint(std::string str)
 void Terminal::fnClearScreen(void)
 {
     SetWindowText(*hwndStsBar, NULL);
+    SetWindowText(*hwndSent, NULL);
+    SetWindowText(*hwndReceived, NULL);
 }
 
