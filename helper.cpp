@@ -342,6 +342,16 @@ void fnSentData(char byPacket[])
     string sData = str.substr(HEADER_SIZE, iDataend);
 
     int TextLen = SendMessage(hSent, WM_GETTEXTLENGTH, 0, 0);
+    int dataLength = sData.length();
+
+    if (TextLen + dataLength > MAX_WIN_CHARS )
+    {
+        char* sRollOver = new char[TextLen + 1];
+        
+        GetWindowText(hSent, sRollOver, TextLen+1);
+        SetWindowText(hSent, NULL);
+        sData = sData + sRollOver;
+    }
     SendMessage(hSent, EM_SETSEL, (WPARAM)TextLen, (LPARAM)TextLen);
     SendMessage(hSent, EM_REPLACESEL, FALSE, (LPARAM)sData.c_str());
 }
