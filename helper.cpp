@@ -477,9 +477,11 @@ void fnSendData(char byPacket[], HANDLE hCommPort)
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    WriteFile(hCommPort, byPacket, PACKET_SIZE, NULL, &ov);
+    if(!WriteFile(hCommPort, byPacket, PACKET_SIZE, NULL, &ov))
+    {
+        WaitForSingleObject(ov.hEvent, INFINITE);
+    }
 
-    WaitForSingleObject(ov.hEvent, INFINITE);
     CloseHandle(ov.hEvent);
 }
 
@@ -512,14 +514,14 @@ void fnSendData(char byControlChar, HANDLE hCommPort)
     OutputDebugString(sstm.str().c_str());
 
     OVERLAPPED ov;
-    DWORD dwBytesWritten;
-
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    WriteFile(hCommPort, &byControlChar, 1, &dwBytesWritten, &ov);
+    if(!WriteFile(hCommPort, &byControlChar, 1, NULL, &ov))
+    {
+        WaitForSingleObject(ov.hEvent, INFINITE);
+    }
 
-    WaitForSingleObject(ov.hEvent, INFINITE);
     CloseHandle(ov.hEvent);
 }
 
