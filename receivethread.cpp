@@ -91,7 +91,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
             {
                 if(readChar == ENQ)
                 {
-                    if(!pReceive->pTransmit->bActive)
+                    if(!pReceive->pTransmit->bActive && !pReceive->bRVI)
                     {
                         _ReceiveThread_::fnGoActive(pReceive);
                     }
@@ -201,7 +201,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                 }
 
                 // exit receive thread if EOT or we want to RVI; continue to receive packets otherwise
-                if(/*bDuplicate || */pReceive->bRVI || fnIsEOT(receivedPacket))
+                if(pReceive->bRVI || fnIsEOT(receivedPacket))
                 {
                     fnProcessData("HH\r\n----------------------\r\n");
                     _ReceiveThread_::fnStop(pReceive);
