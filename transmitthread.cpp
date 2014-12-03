@@ -15,9 +15,9 @@
  *
  * @revision   none
  *
- * @designer   EricTsang
+ * @designer   EricTsang & Jonathan Chu & Marc Rafanan & Joel Mabbot
  *
- * @programmer EricTsang
+ * @programmer EricTsang & Joel Mabbot
  *
  * @note       none
  */
@@ -36,9 +36,9 @@
  *
  * @revision   none
  *
- * @designer   EricTsang & Jonathan Chu & Marc Rafanan
+ * @designer   EricTsang & Jonathan Chu & Marc Rafanan & Joel Mabbot
  *
- * @programmer EricTsang
+ * @programmer EricTsang & Joel Mabbot
  *
  * @note       none
  *
@@ -110,9 +110,9 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
  *
  * @revision   none
  *
- * @designer   EricTsang & Jonathan Chu & Marc Rafanan
+ * @designer   EricTsang & Jonathan Chu & Marc Rafanan & Joel Mabbot
  *
- * @programmer EricTsang
+ * @programmer EricTsang & Joel Mabbot
  *
  * @note       none
  *
