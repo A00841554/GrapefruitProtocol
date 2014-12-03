@@ -5,6 +5,7 @@ int Generator::lastNum = 0;
 void Generator::set_seed( unsigned int seed )
 {
     lastNum = seed;
+    srand( seed );
 }
 
 int Generator::next( void )

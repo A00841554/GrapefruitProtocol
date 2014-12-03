@@ -1,6 +1,8 @@
 #ifndef _GENERATOR_H_
 #define _GENERATOR_H_
 
+///#include <windows.h>
+///#include <sstream>
 #include <cstdlib>
 
 class Generator
