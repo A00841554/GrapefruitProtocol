@@ -13,14 +13,14 @@ const char RVI  = 17;
 const char ENQ  = 5;
 
 // timeouts & retry counts
-const int SHORT_SLEEP                   = 100;
-const int MAX_MISS                      = 3;
-const int MAX_SENT                      = 10;
-const int MAX_RESET_TIMEOUT             = 10000;
-const int MIN_RESET_TIMEOUT             = 1000;
-const int TIMEOUT_AFTER_T_ENQ           = 5000; // milliseconds to wait after transmitting an ENQ
-const int TIMEOUT_AFTER_T_PACKET        = 5000; // milliseconds to wait after transmitting a packet
-const int TIMEOUT_AFTER_R_ENQ           = 5000; // milliseconds to wait after receiving an ENQ
+const int SHORT_SLEEP                   = 100;      // sleep for control thread
+const int MAX_MISS                      = 3;        // maximum miss before transmit timesout
+const int MAX_SENT                      = 10;       // maximum packets to transmit before reseting
+const int MAX_RESET_TIMEOUT             = 10000;    // maximum wait time for transmit
+const int MIN_RESET_TIMEOUT             = 1000;     // minimum wait time for transmit
+const int TIMEOUT_AFTER_T_ENQ           = 5000;     // milliseconds to wait after transmitting an ENQ
+const int TIMEOUT_AFTER_T_PACKET        = 5000;     // milliseconds to wait after transmitting a packet
+const int TIMEOUT_AFTER_R_ENQ           = 5000;     // milliseconds to wait after receiving an ENQ
 
 // packets
 const int HEADER_SIZE    = 2;
