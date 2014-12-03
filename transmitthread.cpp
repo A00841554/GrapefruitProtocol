@@ -100,11 +100,13 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                         expectedChars, sizeof(expectedChars),
                         TIMEOUT_AFTER_T_PACKET);
 
+            std::stringstream sstm;
+            sstm << "received: " << byReceivedChar << " result: " << result << std::endl;
+            OutputDebugString(sstm.str().c_str());
+
             // we received an ack, discard the sent data because we don't need to retransmit it anymore
             if(result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
             {
-                OutputDebugString("TransmitThread: Transmit Packet\n");
-
                 // update stats, and the UI
                 fnUpdateStats(STATS_PCKT_SENT);
                 fnSentData(pSCurrPacket);
