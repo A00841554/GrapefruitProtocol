@@ -480,7 +480,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 	{
 		case WM_CREATE:
 		{
-
+            if (RegisterHotKey(
+                hwnd,
+                321,
+                MOD_CONTROL | MOD_NOREPEAT,
+                0x53))  //0x42 is 's'
+            {
+              OutputDebugString("Hotkey 'ctr + s' registered, using MOD_NOREPEAT flag\n");
+            }
 		}
 			break;
 		//////////////////////
@@ -491,6 +498,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 			EnumChildWindows(hwnd, EnumChildProc, (LPARAM)&rcClient);
 		
 			break;
+
+        case WM_HOTKEY:
+            if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
+            {
+                int textLength = GetWindowTextLength(*oTerminal->hwndEditBox);
+                char* string = new char[textLength + 1];
+
+                GetWindowText(*oTerminal->hwndEditBox, string, textLength + 1);
+                SetWindowText(*oTerminal->hwndEditBox, NULL);
+                (*oApp).fnSend(string, textLength);
+
+                delete string;
+            }
+            break;
 
         ///////////////////////////////
         // Process menu bar messages //
