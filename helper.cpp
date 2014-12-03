@@ -474,12 +474,10 @@ void fnUpdateStats(const int iStat)
 void fnSendData(char byPacket[], HANDLE hCommPort)
 {
     OVERLAPPED ov;
-    DWORD dwBytesWritten;
-
     memset(&ov, 0, sizeof(OVERLAPPED));
     ov.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-    WriteFile(hCommPort, byPacket, PACKET_SIZE, &dwBytesWritten, &ov);
+    WriteFile(hCommPort, byPacket, PACKET_SIZE, NULL, &ov);
 
     WaitForSingleObject(ov.hEvent, INFINITE);
     CloseHandle(ov.hEvent);
