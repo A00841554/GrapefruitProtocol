@@ -99,7 +99,7 @@ DWORD WINAPI fnReceiveThreadIdle(LPVOID lpArg)
             {
                 if(readChar == ENQ)
                 {
-                    if(!pReceive->pTransmit->bActive && !pReceive->bRVI)
+                    if(!pReceive->pTransmit->bActive || pReceive->bRVI)
                     {
                         _ReceiveThread_::fnGoActive(pReceive);
                     }
