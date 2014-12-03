@@ -460,7 +460,7 @@ void fnUpdateStats(const int iStat)
     char cNumPcktsReceived[21];
     sprintf_s(cNumPcktsReceived, "%d", iPacketsReceived);
     
-    int iReceivedErrorRate = (iInvalidPackets == 0 ? 0 : (iPacketsReceived)/iInvalidPackets);
+    double iReceivedErrorRate = (iInvalidPackets == 0 ? 0 : (iPacketsReceived)/iInvalidPackets);
     char cReceivedErrorRate[21];
     sprintf_s(cReceivedErrorRate, "%d", iReceivedErrorRate);
 
