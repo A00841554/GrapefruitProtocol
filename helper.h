@@ -38,6 +38,10 @@
 #include "controlthread.h"
 #include "protocolparams.h"
 
+const int MAX_WIN_CHARS     = 25000;
+
+const int ROLL_OVER_CHARS   = 5000;
+
 void fnPacketizeData(TransmitArgs &transmit, char* packet, bool bForceEOT);
 bool fnCheckDuplicate (char byPacket[], ReceiveArgs &receive);
 bool fnValidatePacket(char byPacket[]);
