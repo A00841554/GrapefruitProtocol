@@ -1,6 +1,53 @@
+/**
+ * implementations of functions declared in transmitthread.h
+ *
+ * @sourceFile transmitthread.cpp
+ *
+ * @program    Grapefruit.exe
+ *
+ * @function   DWORD WINAPI fnTransmitIdle(LPVOID)
+ * @function   DWORD WINAPI fnTransmitActive(LPVOID lpArg)
+ * @function   void _TransmitThread_::fnGoActive(TransmitArgs*)
+ * @function   void _TransmitThread_::fnReset(TransmitArgs*)
+ * @function   void _TransmitThread_::fnStop(TransmitArgs*)
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ */
+
 #include "receivethread.h"
 #include "transmitthread.h"
 
+/**
+ * transmit idle thread. waits for the request to go active or request to stop
+ *   to become signaled; when the active handle is signaled, then the transmit
+ *   thread
+ *
+ * @function   fnTransmitIdle
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang & Jonathan Chu & Marc Rafanan
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  DWORD WINAPI fnTransmitIdle(LPVOID)
+ *
+ * @param      lpArg pointer to a TransmitArgs structure
+ *
+ * @return     windows stuff
+ */
 DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
 {
     TransmitArgs* pTransmit = (TransmitArgs*) lpArg;
@@ -24,11 +71,15 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     {
         case WAIT_OBJECT_0+0:
         {
+            // request to stop received; stop the transmit thread
             _TransmitThread_::fnStop(pTransmit);
             break;
         }
         case WAIT_OBJECT_0+1:
         {
+            // request to go active received; go active if the receive thread is
+            // not yet active...but if the receive thread is active, stop the
+            // transmit thread
             if(!pTransmit->pReceive->bActive)
                 _TransmitThread_::fnGoActive(pTransmit);
             else
@@ -37,6 +88,7 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
         }
         default:
         {
+            // good game
             DWORD err = GetLastError();
             OutputDebugString("Something went wrong...\n");
             _TransmitThread_::fnStop(pTransmit);
@@ -48,6 +100,28 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     return 0;
 }
 
+/**
+ * transmit thread's active state. in here, the transmit thread takes data out
+ *   of the transmit buffer, and sends it to the receiver
+ *
+ * @function   fnTransmitActive
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang & Jonathan Chu & Marc Rafanan
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  DWORD WINAPI fnTransmitActive(LPVOID lpArg)
+ *
+ * @param      lpArg pointer to a TransmitArgs structure
+ *
+ * @return     windows stuff
+ */
 DWORD WINAPI fnTransmitActive(LPVOID lpArg)
 {
     OutputDebugString("TransmitThread: Active\n");
@@ -107,8 +181,10 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                         expectedChars, sizeof(expectedChars),
                         TIMEOUT_AFTER_T_PACKET);
 
-            // we received an ack, discard the sent data because we don't need to retransmit it anymore
-            if(result != ReadDataResult::TIMEDOUT && (byReceivedChar == ACK || byReceivedChar == RVI))
+            // we received an ack, discard the sent data because we don't need
+            // to retransmit it anymore
+            if(result != ReadDataResult::TIMEDOUT
+                && (byReceivedChar == ACK || byReceivedChar == RVI))
             {
                 OutputDebugString("TransmitThread: Transmit Packet\n");
 
@@ -118,8 +194,8 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
                 if(fnIsEOT(pSCurrPacket))
                     fnSentData("HH\r\n----------------------\r\n");
 
-                // sent data has been acked; remove it & if there are no more data to send, reset our
-                // request to go active flag
+                // sent data has been acked; remove it & if there are no more
+                // data to send, reset our request to go active flag
                 fnDropHeadPacketData(pTransmit);
                 if (pTransmit->pTransmitBuffer->empty())
                 {
@@ -128,16 +204,22 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             }
 
             // check for reset conditions
-            if ((result == ReadDataResult::TIMEDOUT && nPacketsMiss >= MAX_MISS) ||
-                (result != ReadDataResult::TIMEDOUT && byReceivedChar == NAK && nPacketsMiss >= MAX_MISS) ||
-                (result != ReadDataResult::TIMEDOUT && byReceivedChar == ACK && fnIsEOT(pSCurrPacket)))
+            if ((result == ReadDataResult::TIMEDOUT
+                && nPacketsMiss >= MAX_MISS)
+                || (result != ReadDataResult::TIMEDOUT
+                && byReceivedChar == NAK
+                && nPacketsMiss >= MAX_MISS)
+                || (result != ReadDataResult::TIMEDOUT
+                && byReceivedChar == ACK
+                && fnIsEOT(pSCurrPacket)))
             {
                 _TransmitThread_::fnReset(pTransmit);
                 return 0;   // gtfo we're done here
             }
 
             // check for retransmit conditions
-            else if ((result == ReadDataResult::TIMEDOUT || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
+            else if ((result == ReadDataResult::TIMEDOUT
+                    || byReceivedChar == NAK) && nPacketsMiss < MAX_MISS)
             {
                 nPacketsMiss++;
                 continue;   // retransmit
@@ -160,6 +242,27 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
     }
 }
 
+/**
+ * sets the members of the passed TransmitArgs to the values indicating that the
+ *   transmit thread is now active, then invokes the transmit thread's active
+ *   state (goes active)
+ *
+ * @function   fnGoActive
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  void _TransmitThread_::fnGoActive(TransmitArgs*)
+ *
+ * @param      pTransmit pointer to a TransmitArgs structure
+ */
 void _TransmitThread_::fnGoActive(TransmitArgs* pTransmit)
 {
     SetEvent(pTransmit->pReceive->hRequestStop);
@@ -167,12 +270,52 @@ void _TransmitThread_::fnGoActive(TransmitArgs* pTransmit)
     fnTransmitActive(pTransmit);
 }
 
+/**
+ * sets the members of the passed TransmitArgs structure to the values
+ *   indicating has stopped, and should go to the reset state when it resumes.
+ *
+ * @function   fnReset
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  void _TransmitThread_::fnReset(TransmitArgs*)
+ *
+ * @param      pTransmit pointer to the TransmitArgs structure
+ */
 void _TransmitThread_::fnReset(TransmitArgs* pTransmit)
 {
     _TransmitThread_::fnStop(pTransmit);
     pTransmit->bReset = true;
 }
 
+/**
+ * sets the members of the passed TransmitArgs structure to the values
+ *   indicating has stopped.
+ *
+ * @function   fnStop
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  void _TransmitThread_::fnStop(TransmitArgs*)
+ *
+ * @param      pTransmit pointer to the TransmitArgs structure
+ */
 void _TransmitThread_::fnStop(TransmitArgs* pTransmit)
 {
     pTransmit->bActive = false;

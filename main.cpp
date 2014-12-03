@@ -1,35 +1,25 @@
-
 /**
- * windowed, terminal-like program that that lets one use a serial port to send,
- *     and receive data.
+ * implementation of functions declared in main.h
  *
- * @sourceFile   main.cpp
+ * @sourceFile main.cpp
  *
- * @program      DumbTerminal2.exe
+ * @program    Grapefruit.exe
  *
- * @classes      none
+ * @function   int WINAPI WinMain (HINSTANCE, HINSTANCE, LPSTR, int)
+ * @function   BOOL CALLBACK EnumChildProc(HWND , LPARAM)
+ * @function   LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)
  *
- * @functions    int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
- *                       LPSTR lspszCmdParam, int nCmdShow)
- *               LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM,
- *                       wParam, LPARAM lParam)
- *				 BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
+ * @date       2014-12-03
  *
- * @date         2014-09-25
+ * @revision   none
  *
- * @revisions    
- *				 2014-11-29		Added the EnumChildProc
+ * @designer   EricTsang
  *
- * @designer     EricTsang
+ * @programmer EricTsang
  *
- * @programmer   EricTsang
- *
- * @notes
- *
- * WinMain creates a windowed application, then dequeues event messages sent to
- *     this application, and forwards them to WndProc, which handles the
- *     messages.
+ * @note       none
  */
+
 #define STRICT
 
 #include <windows.h>
@@ -83,7 +73,6 @@ int iPacketsReceived = 0;
 //////////////////////////
 
 LRESULT CALLBACK WndProc (HWND, UINT, WPARAM, LPARAM);
-void fnOnReceiveCallback(char c);
 
 //////////////////////////
 // Function definitions //
@@ -99,9 +88,9 @@ void fnOnReceiveCallback(char c);
  *
  * @revisions    none
  *
- * @designer     EricTsang
+ * @designer     EricTsang & Marc Rafanan & Jonathan Chu
  *
- * @programmer   EricTsang
+ * @programmer   EricTsang & Marc Rafanan & Jonathan Chu
  *
  * @notes
  *
@@ -151,17 +140,6 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
     // create and show the window, and instantiate application objects
     {
 
-        //HFONT hFont =
-        //        CreateFont(0, 10, 0, 0, FW_DONTCARE, FALSE, FALSE,  // hFont
-        //                FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
-        //                CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH,
-        //                TEXT("Courier New"));
-
-        //FontColors defaultFontColors = {
-        //        RGB(255, 255, 0),   // textColor
-        //        RGB(0, 0, 0)        // backgroundColor
-        //};
-
         HWND hwnd = CreateWindow(NAME, NAME, WS_OVERLAPPEDWINDOW, 10, 10,
                 815, 700, NULL, NULL, hInst, NULL);
 
@@ -189,45 +167,45 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             leftWidth,                          // width
             430,                                // height
             hwnd,                               // parent [optional]
-			(HMENU)SENT_BOX,                               // menu [optional]
+            (HMENU)SENT_BOX,                               // menu [optional]
             GetModuleHandle(NULL),              // instance handle
-            NULL);      
+            NULL);
 
-		/*
-		
-		If you're just using the Win32 API, you normally handle this by handling the WM_SIZE message, 
-		and respond by calling GetClientRect on the parent window and MoveWindow on the children to 
-		move/resize the children to fill the parent appropriately
-		
-		*/
+        /*
+         * If you're just using the Win32 API, you normally handle this by
+         *   handling the WM_SIZE message, and respond by calling GetClientRect
+         *   on the parent window and MoveWindow on the children to move/resize
+         *   the children to fill the parent appropriately
+         */
 
         // Create an Received box
         HWND hwndRight = CreateWindowEx (WS_EX_CLIENTEDGE,
-            "EDIT",                             // String or Class name from the Register class
-            "",                                 // Window name
+            "EDIT",                 // String or Class name from the Register class
+            "",                     // Window name
             WS_CHILD | WS_VSCROLL | WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // Style
-            rect.left + 20 + 15 + leftWidth,           // Initial horizontal position
-            rect.top + 20,                        // Initial vertical position
-            rightWidth,                           // width
-            430,     // height
-            hwnd,                                 // parent [optional]
-            (HMENU)RECEIVED_BOX,                                 // menu [optional]
-            GetModuleHandle(NULL),                // instance handle
-            NULL);                                // CreateStruct [optional]
+            rect.left + 20 + 15 + leftWidth,    // Initial horizontal position
+            rect.top + 20,          // Initial vertical position
+            rightWidth,             // width
+            430,                    // height
+            hwnd,                   // parent [optional]
+            (HMENU)RECEIVED_BOX,    // menu [optional]
+            GetModuleHandle(NULL),  // instance handle
+            NULL);                  // CreateStruct [optional]
 
         // Create an Stats box
         HWND hwndStats = CreateWindowEx (WS_EX_CLIENTEDGE,
-            "EDIT",                            // String or Class name from the Register class
-            "",                              // Window name
-            WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY,   // Style
-            650,           // Initial horizontal position
-            rect.top + 20,                        // Initial vertical position
-            130,                           // width
-            430,     // height
-            hwnd,                                 // parent [optional]
-            (HMENU)STATS_BOX,                                 // menu [optional]
-            GetModuleHandle(NULL),                            // instance handle
-            NULL);                                // CreateStruct [optional]
+            "EDIT",                 // String or Class name from the Register class
+            "",                     // Window name
+            WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_READONLY, // Style
+            650,                    // Initial horizontal position
+            rect.top + 20,          // Initial vertical position
+            130,                    // width
+            430,                    // height
+            hwnd,                   // parent [optional]
+            (HMENU)STATS_BOX,       // menu [optional]
+            GetModuleHandle(NULL),  // instance handle
+            NULL);                  // CreateStruct [optional]
+
         SendMessage(hwndStats,
             WM_SETFONT,
             (WPARAM)hfDefault,
@@ -273,17 +251,17 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
             MAKELPARAM(FALSE,0));
 
         // Create an status bar
-        HWND hwndStatus = CreateWindowEx(WS_EX_CLIENTEDGE,                       // no extended styles
-            "EDIT",         // name of status bar class
-            "",           // no text when first created
+        HWND hwndStatus = CreateWindowEx(WS_EX_CLIENTEDGE,
+            "EDIT",                 // name of status bar class
+            "",                     // no text when first created
             WS_CHILD |WS_VSCROLL| WS_VISIBLE | ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL,   // creates a visible child window
-            20,//--------------------------------------------------------------------->position X
-            rect.bottom - 60, //------------------------------------------------------>position y
-            leftWidth + rightWidth + 15 + 15 + 130,//----------------------------------> X status BAR length
-            40,//----------------------------------------------------------------------> Y status bar length
-            hwnd,              // handle to parent window
-            (HMENU)STATUS_BAR,       // child window identifier
-            GetModuleHandle(NULL),                   // handle to application instance
+            20,                     // position X
+            rect.bottom - 60,       // position y
+            leftWidth + rightWidth + 15 + 15 + 130,     // X status BAR length
+            40,                     // Y status bar length
+            hwnd,                   // handle to parent window
+            (HMENU)STATUS_BAR,      // child window identifier
+            GetModuleHandle(NULL),  // handle to application instance
             NULL);
 
         // create objects
@@ -332,109 +310,109 @@ int WINAPI WinMain (HINSTANCE hInst, HINSTANCE hprevInstance,
 
 
 /**
-* Handles the updating for the size of our sub windows
-*
-* @function     EnumChildProc
-*
-* @date         November 29th, 2014
-*
-* @revisions    none
-*
-* @designer     Jonathan Chu
-*
-* @programmer   Jonathan Chu
-*
-* @param        lParam		additional information associated with Message
-*				hwndChild	A handler for the childs
-*
-* @return       returns true once its done
-*
-* @notes
-*/
+ * Handles the updating for the size of our sub windows
+ *
+ * @function     EnumChildProc
+ *
+ * @date         November 29th, 2014
+ *
+ * @revisions    none
+ *
+ * @designer     Jonathan Chu
+ *
+ * @programmer   Jonathan Chu
+ *
+ * @param        lParam        additional information associated with Message
+ *                hwndChild    A handler for the childs
+ *
+ * @return       returns true once its done
+ *
+ * @notes
+ */
 BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
 {
-	LPRECT theMainWindow;
-	int whichPanel;
+    LPRECT theMainWindow;
+    int whichPanel;
 
-	// Retrieve the child-window identifier. Use it to set the 
-	// position of the child window. 
-	whichPanel = GetWindowLong(hwndChild, GWL_ID);
+    // Retrieve the child-window identifier. Use it to set the
+    // position of the child window.
+    whichPanel = GetWindowLong(hwndChild, GWL_ID);
 
-	// looks for the panel
-	theMainWindow = (LPRECT)lParam;
+    // looks for the panel
+    theMainWindow = (LPRECT)lParam;
 
-	switch (whichPanel)
-	{
-		case RECEIVED_BOX:
-		{
-			MoveWindow(hwndChild,
-			((theMainWindow->right / 5) * 2) + 12,
-			20,
-			((theMainWindow->right / 5) * 2) - 10,
-			theMainWindow->bottom - 250,
-			TRUE);
-		}
-			  break;
+    switch (whichPanel)
+    {
+        case RECEIVED_BOX:
+        {
+            MoveWindow(hwndChild,
+            ((theMainWindow->right / 5) * 2) + 12,
+            20,
+            ((theMainWindow->right / 5) * 2) - 10,
+            theMainWindow->bottom - 250,
+            TRUE);
+        }
+              break;
 
-		case SENT_BOX:
-		{
-			MoveWindow(hwndChild,
-			10,
-			20,
-			((theMainWindow->right / 5) * 2) - 10,
-			theMainWindow->bottom - 250,
-			TRUE);
-		}
-			 break;
+        case SENT_BOX:
+        {
+            MoveWindow(hwndChild,
+            10,
+            20,
+            ((theMainWindow->right / 5) * 2) - 10,
+            theMainWindow->bottom - 250,
+            TRUE);
+        }
+             break;
 
-		case STATS_BOX:
-		{
-			MoveWindow(hwndChild,
-				((theMainWindow->right / 5) * 4) + 15,
-			20,
-			(theMainWindow->right / 5) - 15,
-			theMainWindow->bottom - 250,
-			TRUE);
-		}
-			  break;
-			  
-		case IDC_MAIN_EDIT:
-		{
-			MoveWindow(hwndChild,
-				10,
-				theMainWindow->bottom - 210,
-				(theMainWindow->right / 5) * 4 - 10,
-				80,
-				TRUE);
-		}
-			break;
-			
-		case IDC_MAIN_BUTTON:
-		{
-			MoveWindow(hwndChild,
-				((theMainWindow->right / 5) * 4) + 10,
-				theMainWindow->bottom - 220,
-				(theMainWindow->right / 5) - 20,
-				100,
-				TRUE);
-		}
-			break;
-		case STATUS_BAR:
-		{
-			MoveWindow(hwndChild,
-				10,
-				theMainWindow->bottom - 110,
-				theMainWindow->right - 20,
-				100,
-				TRUE);
-		}
-			break;
-	}
+        case STATS_BOX:
+        {
+            MoveWindow(hwndChild,
+                ((theMainWindow->right / 5) * 4) + 15,
+            20,
+            (theMainWindow->right / 5) - 15,
+            theMainWindow->bottom - 250,
+            TRUE);
+        }
+              break;
 
-	// Make sure the child window is visible. 
-	ShowWindow(hwndChild, SW_SHOW);
+        case IDC_MAIN_EDIT:
+        {
+            MoveWindow(hwndChild,
+                10,
+                theMainWindow->bottom - 210,
+                (theMainWindow->right / 5) * 4 - 10,
+                80,
+                TRUE);
+        }
+            break;
 
-	return TRUE;
+        case IDC_MAIN_BUTTON:
+        {
+            MoveWindow(hwndChild,
+                ((theMainWindow->right / 5) * 4) + 10,
+                theMainWindow->bottom - 220,
+                (theMainWindow->right / 5) - 20,
+                100,
+                TRUE);
+        }
+            break;
+        case STATUS_BAR:
+        {
+            MoveWindow(hwndChild,
+                10,
+                theMainWindow->bottom - 110,
+                theMainWindow->right - 20,
+                100,
+                TRUE);
+        }
+            break;
+    }
+
+    // Make sure the child window is visible.
+    ShowWindow(hwndChild, SW_SHOW);
+
+    return TRUE;
 }
 
 /**
@@ -448,7 +426,7 @@ BOOL CALLBACK EnumChildProc(HWND hwndChild, LPARAM lParam)
  *
  * @designer     EricTsang
  *
- * @programmer   EricTsang
+ * @programmer   EricTsang & Marc Rafanan & Jonathan Chu
  *
  * @notes
  *
@@ -474,12 +452,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
     RECT clientRectangle;   // rectangle containing dimensions of client area
 
 
-	RECT rcClient;   //------------------->CHECK
+    RECT rcClient;          // CHECK
 
-	switch (Message)
-	{
-		case WM_CREATE:
-		{
+    switch (Message)
+    {
+        case WM_CREATE:
+        {
             if (RegisterHotKey(
                 hwnd,                           //win handler
                 321,                            //the ID
@@ -488,16 +466,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
             {
               OutputDebugString("Hotkey 'ctr + s' registered, using MOD_NOREPEAT flag\n");
             }
-		}
-			break;
-		//////////////////////
-		// Resizable Window // 
-		//////////////////////
-		case WM_SIZE:
-			GetClientRect(hwnd, &rcClient);
-			EnumChildWindows(hwnd, EnumChildProc, (LPARAM)&rcClient);
-		
-			break;
+        }
+            break;
+        //////////////////////
+        // Resizable Window //
+        //////////////////////
+        case WM_SIZE:
+            GetClientRect(hwnd, &rcClient);
+            EnumChildWindows(hwnd, EnumChildProc, (LPARAM)&rcClient);
+
+            break;
 
 
         case WM_HOTKEY:
@@ -607,36 +585,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
             }
             break;
 
-        ///////////////////////////////
-        // Process keystroke message //
-        ///////////////////////////////
-        case WM_CHAR:
-        {
-            char c = (char) wParam;
-            /*switch (c)
-            {
-                case 'a':
-                (*oApp).fnStartControlThread();
-                break;
-
-                case 's':
-                (*oApp).fnStopControlThread();
-                break;
-            }*/
-            /*if ((*oApp).fnGetMode() == ApplicationConsts::Mode::CONNECT)
-            {
-                if (c != VK_ESCAPE)
-                {
-                    (*oApp).fnSend((char) wParam);
-                }
-                else
-                {
-                    (*oApp).fnSetMode(ApplicationConsts::Mode::COMMAND);
-                }
-            }*/
-            break;
-        }
-
         /////////////////////////////
         // Process repaint message //
         /////////////////////////////
@@ -674,48 +622,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message,
 
     // return...
     return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * forward received callbacks to the application's receive function
- *
- * @function     fnOnReceiveCallback
- *
- * @date         2014-09-25
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes        none
- *
- * @signature    void fnOnReceiveCallback(char c)
- *
- * @param        c   character received through the serial port
- */
-void fnOnReceiveCallback(char c)
-{
-    (*oApp).fnOnReceive(c);
 }

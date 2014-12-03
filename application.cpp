@@ -1,35 +1,32 @@
-
 /**
- * definitions of the Application class's functions declared in application.h
+ * implementation of the functions declared in application.h
  *
- * @sourceFile   application.cpp
+ * @sourceFile application.cpp
  *
- * @program      DumbTerminal2.exe
+ * @program    Grapefruit.exe
  *
- * @classes      Application
+ * @function   Application::Application(HWND, CommPort*, Terminal*)
+ * @function   void Application::fnSelectPort(std::string)
+ * @function   void Application::fnSetMode(ApplicationConsts::Mode)
+ * @function   ApplicationConsts::Mode Application::fnGetMode(void)
+ * @function   void Application::fnConfigurePort(void)
+ * @function   void Application::fnSend(char*, int)
+ * @function   void Application::fnHelp(void)
+ * @function   bool Application::fnStartControlThread(void)
+ * @function   void Application::fnStopControlThread(void)
+ * @function   void Application::fnSetRVI(void)
  *
- * @functions    Application::Application(HWND hwnd, CommPort* commPort,
- *                       Terminal* terminal)
- *               void Application::fnSelectPort(std::string newPortName)
- *               void fnSetMode(ApplicationConsts::Mode newMode)
- *               ApplicationConsts::Mode newMode fnGetMode(void)
- *               void Application::fnOpenPort(void)     REMOVED
- *               void Application::fnClosePort(void)    REMOVED
- *               void Application::fnConfigurePort(void)
- *               void Application::fnSend(char c)
- *               void Application::fnHelp(void)
- *               void Application::fnOnReceive(char c)
+ * @date       2014-12-03
  *
- * @date         2014-09-26
+ * @revision   none
  *
- * @revisions    none
+ * @designer   EricTsang
  *
- * @designer     EricTsang
+ * @programmer EricTsang
  *
- * @programmer   EricTsang
- *
- * @notes        none
+ * @note       none
  */
+
 #include "application.h"
 
 
@@ -40,34 +37,26 @@
 /////////////////
 
 /**
- * instantiates an Application object
+ * instantiates an application object
  *
- * @class        Application
+ * @class      Application
  *
- * @method       Application
+ * @method     Application
  *
- * @date         2014-09-26
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @designer   EricTsang
  *
- * @designer     EricTsang
+ * @programmer EricTsang
  *
- * @programmer   EricTsang
+ * @note       initializes instance variables as necessary
  *
- * @notes
+ * @signature  Application::Application(HWND, CommPort*, Terminal*)
  *
- * instantiates an Application object, and saves pointers to passed CommPort and
- *     Terminal objects.
- *
- * @signature    Application::Application(HWND hwnd, CommPort* commPort,
- *     Terminal* terminal)
- *
- * @param        hwnd   handle to the window that this Application object is
- *     associated with, so it can show dialogs as needed
- * @param        commPort   pointer to a CommPort object that this Application
- *     uses, and provices functions for, and displays information about
- * @param        terminal   pointer to a Terminal object used to display
- *     information to the user
+ * @param      hwnd handle to the window
+ * @param      commPort handle to the serial port that the application uses
+ * @param      terminal handle to the terminal used to print the status of the
+ *   application to
  */
 Application::Application(HWND hwnd, CommPort* commPort, Terminal* terminal)
 {
@@ -89,30 +78,24 @@ Application::Application(HWND hwnd, CommPort* commPort, Terminal* terminal)
 /////////////////////////
 
 /**
- * tries to sets the name of the CommPort object; displays a message on the
- *     Terminal about the outcome of the operation
+ * changes the serial port used by the application; prints a message to the
+ *   passed terminal indicating the result of the operation.
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnSelectPort
+ * @method     fnSelectPort
  *
- * @date         2014-09-26
+ * @date       2014-12-03
  *
- * @revisions
+ * @designer   EricTsang
  *
- * 2014-09-27 - automatically closes the current port, before changing the name,
- *     then automatically tries to open the new port.
+ * @programmer EricTsang
  *
- * @designer     EricTsang
+ * @note       none
  *
- * @programmer   EricTsang
+ * @signature  void Application::fnSelectPort(std::string)
  *
- * @notes        none
- *
- * @signature    void Application::fnSelectPort(std::string newPortName)
- *
- * @param        newPortName   name of the port that we want the application to
- *     use
+ * @param      newPortName name of the port to try to use next
  */
 void Application::fnSelectPort(std::string newPortName)
 {
@@ -162,29 +145,29 @@ void Application::fnSelectPort(std::string newPortName)
 }
 
 /**
- * sets the current mode that the application is in
+ * sets the mode of the application to the passed mode; prints the new mode to
+ *   the terminal passed in through the constructor.
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnSetMode
+ * @method     fnSetMode
  *
- * @date         2014-09-27
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @designer   EricTsang
  *
- * @designer     EricTsang
+ * @programmer EricTsang
  *
- * @programmer   EricTsang
+ * @note
  *
- * @notes
+ * performs cleanup code needed to leave the current mode, and setup
+ *   setup code to go into the new mode, then sets the current mode of the
+ *   application to the new mode
  *
- * sets the current mode that the Application instance is in. in different
- *     modes, different functions are available, and others are blocked. valid
- *     Application modes are in the ApplicationConsts::Mode namespace
+ * @signature  void Application::fnSetMode(ApplicationConsts::Mode)
  *
- * @signature    void Application::fnSetMode(ApplicationConsts::Mode newMode)
- *
- * @param        newMode   the new mode of the Application instance
+ * @param      newMode number indicating the new mode that the application
+ *   should switch to.
  */
 void Application::fnSetMode(ApplicationConsts::Mode newMode)
 {
@@ -239,25 +222,23 @@ void Application::fnSetMode(ApplicationConsts::Mode newMode)
 }
 
 /**
- * returns the Application instance's current mode
+ * returns the current mode of the application
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnGetMode
+ * @method     fnGetMode
  *
- * @date         2014-09-27
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @designer   EricTsang
  *
- * @designer     EricTsang
+ * @programmer EricTsang
  *
- * @programmer   EricTsang
+ * @note       none
  *
- * @notes        none
+ * @signature  ApplicationConsts::Mode Application::fnGetMode(void)
  *
- * @signature    ApplicationConsts::Mode Application::fnGetMode(void)
- *
- * @return       current mode of the Application instance
+ * @return     current mode of the application
  */
 ApplicationConsts::Mode Application::fnGetMode(void)
 {
@@ -265,25 +246,25 @@ ApplicationConsts::Mode Application::fnGetMode(void)
 }
 
 /**
- * Tries to open a dialog that can be used to configure common settings of the
- *   CommPort; prints a message about the result of the operation to the
- *   Terminal
+ * displays a window that a user can use to modify the properties of the serial
+ *   port; prints the result of the configuration to the Terminal passed during
+ *   construction.
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnConfigurePort
+ * @method     fnConfigurePort
  *
- * @date         2014-09-25
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @revision   none
  *
- * @designer     EricTsang
+ * @designer   EricTsang
  *
- * @programmer   EricTsang
+ * @programmer EricTsang
  *
- * @notes        none
+ * @note       none
  *
- * @signature    void Application::fnConfigurePort(void)
+ * @signature  void Application::fnConfigurePort(void)
  */
 void Application::fnConfigurePort(void)
 {
@@ -334,27 +315,26 @@ void Application::fnConfigurePort(void)
 }
 
 /**
- * tries to send the passed character (c) out the CommPort; prints a message to
- *   the Terminal if the operation fails. nothing is printed to the Terminal if
- *   the operation succeeds.
+ * sends the passed character array to the out through the communications port
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnSend
+ * @method     fnSend
  *
- * @date         2014-09-25
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @revision   none
  *
- * @designer     EricTsang
+ * @designer   EricTsang
  *
- * @programmer   EricTsang
+ * @programmer EricTsang
  *
- * @notes        none
+ * @note       none
  *
- * @signature    void Application::fnSend(char c)
+ * @signature  void Application::fnSend(char*, int)
  *
- * @param        c   character to send out the CommPort
+ * @param      pBuffer pointer to the first character in the character array
+ * @param      nCharsToSend length of the character array
  */
 void Application::fnSend(char* pBuffer, int nCharsToSend)
 {
@@ -401,23 +381,23 @@ void Application::fnSend(char* pBuffer, int nCharsToSend)
 }
 
 /**
- * prints a nice helpful help message to the Terminal
+ * prints a helpful message for the user about how to use the program
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnHelp
+ * @method     fnHelp
  *
- * @date         2014-09-25
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @revision   none
  *
- * @designer     EricTsang
+ * @designer   EricTsang
  *
- * @programmer   EricTsang
+ * @programmer EricTsang
  *
- * @notes        none
+ * @note       none
  *
- * @signature    void Application::fnHelp(void)
+ * @signature  void Application::fnHelp(void)
  */
 void Application::fnHelp(void)
 {
@@ -429,94 +409,30 @@ void Application::fnHelp(void)
     mStringStream << "                  > Clear Screen:    Clears the current status screen.\r\n";
     mStringStream << "                  > Change Mode:   Selects the mode in which you are going to operate.\r\n";
 
-	(*mPtrTerminal).fnClearScreen();
+    (*mPtrTerminal).fnClearScreen();
     (*mPtrTerminal).fnPrint(mStringStream.str());
 }
 
 /**
- * handles a received character
+ * starts the control thread that manages the transmit and receive threads
  *
- * @class        Application
+ * @class      Application
  *
- * @method       fnOnReceive
+ * @method     fnStartControlThread
  *
- * @date         2014-09-25
+ * @date       2014-12-03
  *
- * @revisions    none
+ * @revision   none
  *
- * @designer     EricTsang
+ * @designer   EricTsang
  *
- * @programmer   EricTsang
+ * @programmer EricTsang
  *
- * @notes
+ * @note       none
  *
- * handles a received character; when a character is received through the serial
- *     port, this callback function is invoked. the passed character (c) is a
- *     character received from the CommPort. the passed character (c) is printed
- *     to the Terminal...unless its a backspace.
+ * @signature  bool Application::fnStartControlThread(void)
  *
- * @signature    void Application::fnOnReceive(char c)
- *
- * @param        c   character received from the CommPort
- */
-void Application::fnOnReceive(char c)
-{
-
-    // create a string stream that we will use to build a string, and print to
-    // the terminal
-    std::stringstream mStringStream;
-
-    // validate application mode before continuing
-    if (mMode == ApplicationConsts::Mode::CONNECT)
-    {
-
-        // do something to the Terminal depending on the received character
-        std::stringstream mStringStream;
-        switch (c)
-        {
-
-            // backspace key; remove character
-            case 8:
-            {
-                //(*mPtrTerminal).fnBackspace();
-                break;
-            }
-
-            // return key; go to the next line
-            case 13:
-                mStringStream << "\n";
-                break;
-
-            // everything else; append character
-            default:
-                mStringStream << c;
-                break;
-        }
-        (*mPtrTerminal).fnPrint(mStringStream.str());
-    }
-}
-
-/**
- * starts the control thread
- *
- * @class        Application
- *
- * @method       fnStartControlThread
- *
- * @date         2014-11-23
- *
- * @revisions    none
- *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes
- *
- * starts the control thread. returns true if the control thread was started;
- *   false otherwise.
- *
- * @signature    bool Application::fnStartControlThread(void)
+ * @return     true if the ControlThread is running; false otherwise
  */
 bool Application::fnStartControlThread(void)
 {
@@ -558,12 +474,51 @@ bool Application::fnStartControlThread(void)
     return !controlArgs.bStopped;
 }
 
+/**
+ * sends a message to the control thread to ask it to stop
+ *
+ * @class      Application
+ *
+ * @method     fnStopControlThread
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  void Application::fnStopControlThread(void)
+ */
 void Application::fnStopControlThread(void)
 {
     controlArgs.bRequestStop = true;
 }
 
-void Application::fnSetRVI()
+/**
+ * sets the RVI flag to true so that communication reverses, and we will become
+ *   the transmitter
+ *
+ * @class      Application
+ *
+ * @method     fnSetRVI
+ *
+ * @date       2014-12-03
+ *
+ * @revision   none
+ *
+ * @designer   EricTsang
+ *
+ * @programmer EricTsang
+ *
+ * @note       none
+ *
+ * @signature  void Application::fnSetRVI(void)
+ */
+void Application::fnSetRVI(void)
 {
     if (mMode == ApplicationConsts::Mode::CONNECT)
         controlArgs.pReceive->bRVI = true;

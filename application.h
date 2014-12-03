@@ -1,30 +1,23 @@
-
 /**
- * declares an Application class. definitions of its methods are in
- *     application.cpp
+ * declares the constants and functions defined and used in application.cpp
  *
- * @sourceFile   application.h
+ * @sourceFile application.h
  *
- * @program      DumbTerminal2.exe
+ * @program    Grapefruit.exe
  *
- * @classes      Application
+ * @class      Application
  *
- * @functions
+ * @date       2014-12-03
  *
- * 2014-09-07 - Eric Tsang - added modes to the Application class; Application
- *     instances now be in specific modes. different functionalities are
- *     available depending on the modes that they are in
+ * @revision   none
  *
- * @date         2014-09-26
+ * @designer   EricTsang
  *
- * @revisions    none
+ * @programmer EricTsang
  *
- * @designer     EricTsang
- *
- * @programmer   EricTsang
- *
- * @notes        none
+ * @note       none
  */
+
 #include <sstream>
 #include "terminal.h"
 #include "commport.h"
@@ -56,36 +49,26 @@ class Application;
  *
  * @class        Application
  *
- * @methods      Application::Application(HWND hwnd, CommPort* commPort,
- *                       Terminal* terminal)
- *               void Application::fnSelectPort(std::string newPortName)
- *               void fnSetMode(ApplicationConsts::Mode newMode)
- *               ApplicationConsts::Mode newMode fnGetMode(void)
- *               void Application::fnOpenPort(void)     REMOVED
- *               void Application::fnClosePort(void)    REMOVED
- *               void Application::fnConfigurePort(void)
- *               void Application::fnSend(char c)
- *               void Application::fnHelp(void)
- *               void Application::fnOnReceive(char c)
+ * @method       Application(HWND, CommPort*, Terminal*)
+ * @method       void fnSelectPort(std::string)
+ * @method       void fnSetMode(ApplicationConsts::Mode)
+ * @method       ApplicationConsts::Mode fnGetMode(void)
+ * @method       void fnConfigurePort(void)
+ * @method       void fnSend(char*, int)
+ * @method       void fnSetRVI(void)
+ * @method       void fnHelp(void)
+ * @method       bool fnStartControlThread(void)
+ * @method       void fnStopControlThread(void)
  *
  * @date         2014-09-25
  *
- * @revisions
- *
- * 2014-09-27 - Eric Tsang - replaced the fnOpenPort and fnClosePort functions
- *     with the fnSetMode and fbGetMode methods to conform more to the
- *     requirements of this assignment. added a mode variable (mMode) that holds
- *     the current mode of the Application instance; it can be
- *     ApplicationConsts::Mode::CONNECT or ApplicationConsts::Mode::COMMAND
+ * @revisions    none
  *
  * @designer     EricTsang
  *
  * @programmer   EricTsang
  *
- * @notes
- *
- * provides interface methods to interact with the passed CommPort, and displays
- *     information to the user through the passed Terminal
+ * @notes        none
  */
 class Application
 {
@@ -96,7 +79,6 @@ class Application
         ApplicationConsts::Mode fnGetMode(void);
         void fnConfigurePort(void);
         void fnSend(char*, int);
-        void fnOnReceive(char);
         void fnSetRVI(void);
         void fnHelp(void);
 
@@ -109,7 +91,7 @@ class Application
 
         /** structure passed to the transmit thread */
         TransmitArgs transmitArgs;
-    
+
         /** structure passed to the receive thread */
         ReceiveArgs receiveArgs;
 
