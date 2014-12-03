@@ -597,10 +597,7 @@ int fnWaitForChar(
     {
         switch(fnReadData(hCommPort, &readChar, 1, timeout - timeoutTimer.fnTimeElapsed()))
         {
-
-            case ReadDataResult::ERR:
-            return ReadDataResult::ERR;
-
+            
             case ReadDataResult::SUCCESS:
             if(readChar == expectedChar)
             {
@@ -614,7 +611,9 @@ int fnWaitForChar(
             case ReadDataResult::TIMEDOUT:
             return ReadDataResult::TIMEDOUT;
 
+            case ReadDataResult::ERR:
             case ReadDataResult::FAIL:
+            assert(false);
             return ReadDataResult::FAIL;
         }   
     }
