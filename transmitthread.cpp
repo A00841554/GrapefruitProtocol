@@ -56,7 +56,11 @@ DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
     if(pTransmit->bReset)
     {
         OutputDebugString("TransmitThread: Reset\n");
-        Sleep(rand() % (MAX_RESET_TIMEOUT - MIN_RESET_TIMEOUT) + MIN_RESET_TIMEOUT);
+        int sleepTime = rand() % (MAX_RESET_TIMEOUT - MIN_RESET_TIMEOUT) + MIN_RESET_TIMEOUT;
+        Sleep(sleepTime);
+        std::stringstream sstm;
+        sstm << "TransmitThread: Sleep for " << sleepTime << " ms\n";
+        OutputDebugString(sstm.str().c_str());
         pTransmit->bReset = false;
     }
 

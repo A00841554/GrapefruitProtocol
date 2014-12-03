@@ -18,7 +18,7 @@ const int MAX_MISS                      = 3;        // maximum miss before trans
 const int MAX_SENT                      = 10;       // maximum packets to transmit before reseting
 const int MAX_RESET_TIMEOUT             = 10000;    // maximum wait time for transmit
 const int MIN_RESET_TIMEOUT             = 1000;     // minimum wait time for transmit
-const int TIMEOUT_AFTER_T_ENQ           = 5000;     // milliseconds to wait after transmitting an ENQ
+const int TIMEOUT_AFTER_T_ENQ           = 250;      // milliseconds to wait after transmitting an ENQ
 const int TIMEOUT_AFTER_T_PACKET        = 5000;     // milliseconds to wait after transmitting a packet
 const int TIMEOUT_AFTER_R_ENQ           = 5000;     // milliseconds to wait after receiving an ENQ
 
