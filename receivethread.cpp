@@ -22,6 +22,7 @@
 
 
 #include "receivethread.h"
+#include "transmitthread.h"
 #include <assert.h>
 
 
@@ -205,6 +206,7 @@ DWORD WINAPI fnReceiveThreadActive(LPVOID lpArg)
                 {
                     fnProcessData("HH\r\n----------------------\r\n");
                     _ReceiveThread_::fnStop(pReceive);
+                    _TransmitThread_::fnGoActive(pReceive->pTransmit);
                 }
                 else
                 {

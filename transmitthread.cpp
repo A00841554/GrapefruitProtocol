@@ -1,3 +1,4 @@
+#include "receivethread.h"
 #include "transmitthread.h"
 
 DWORD WINAPI fnTransmitIdle(LPVOID lpArg)
@@ -152,6 +153,7 @@ DWORD WINAPI fnTransmitActive(LPVOID lpArg)
             else if (byReceivedChar == RVI)
             {
                 _TransmitThread_::fnStop(pTransmit);
+                _ReceiveThread_::fnGoActive(pTransmit->pReceive);
                 return 0;   // gtfo we're done here
             }
         }
